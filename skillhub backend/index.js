@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./routers/authRoutes.js";
+import courseRoutes from "./routers/courseRouter.js";
 
 dotenv.config({ debug: true });
 
@@ -25,8 +26,5 @@ mongoose.connect(process.env.MONGO_URI)
   
 
 app.use("/api/auth", authRoutes);
-
-
-
-
+app.use("/api/courses", courseRoutes);
 
