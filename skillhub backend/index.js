@@ -6,6 +6,7 @@ import courseRoutes from "./routers/courseRouter.js";
 import enrollRoutes from "./routers/enrollRouter.js";
 import lessonRoutes from "./routers/lessonRouter.js";
 import progressRoutes from "./routers/progressRouter.js";
+import reviewRoutes from "./routers/reviewRouter.js";
 
 dotenv.config({ debug: true });
 
@@ -33,13 +34,13 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/enrollments", enrollRoutes);
 app.use("/api/lessons", lessonRoutes);
 app.use("/api/progress", progressRoutes);
-
+app.use("/api/reviews", reviewRoutes);
 
 
 
 app.use((req, res) => {
   res.status(404).json({ message: "Endpoint not found" });
-});
+}); 
 
 app.get("/", (req, res) => {
   res.send("Welcome to SkillHub API!");
