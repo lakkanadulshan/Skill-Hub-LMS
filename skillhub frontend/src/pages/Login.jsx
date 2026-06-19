@@ -1,11 +1,14 @@
 import { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
 import API from "../services/api";
 import loginImage from "../assets/login page image.png";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
-  const { login } = useContext(AuthContext); // AuthContext එකෙන් login function එක ගන්නවා
+  // 1. All hooks and states must be inside the component
+  const { login } = useContext(AuthContext); 
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +16,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // සාමාන්‍ය Email/Password වලින් ලොග් වන Function එක
+  // 2. Standard Email/Password Login Function
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -24,12 +27,8 @@ export default function Login() {
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
-        
-        // Context state එක update කිරීම (නිරීක්ෂණය සඳහා)
         if (login) login(response.data);
-
-        // සාර්ථකව ලොග් වූ පසු Dashboard එකට redirect කිරීම
-        window.location.href = "/dashboard";
+        navigate("/dashboard"); // Using navigate instead of window.location
       }
     } catch (err) {
       setError(
@@ -38,11 +37,35 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-  };
+  }; // 👈 handleLogin function ends here
 
-  // const handleGoogleLogin = () => {
-  //   alert("Google login feature will be added soon!");
-  // };
+  // 3. Google OAuth Login Functions (Now properly inside Login component)
+  // 1. handleGoogleSuccess එක මෙහෙම අප්ඩේට් කරන්න
+const handleGoogleSuccess = async (tokenResponse) => {
+  try {
+    console.log("Google Response:", tokenResponse); // 👈 ටෙස්ට් කරලා බලන්න code එක එනවාද කියලා
+
+    const res = await API.post("/auth/google-login", {
+      token: tokenResponse.code, // 👈 'access_token' වෙනුවට දැන් මෙතනට එන්නේ 'code' එක
+    });
+
+    if (res.data) {
+      login(res.data); 
+      console.log("Google Login Successful!");
+      navigate("/dashboard");
+    }
+  } catch (err) {
+    console.error("Backend Google Login Failed:", err);
+  }
+};
+
+// 2. useGoogleLogin Hook එකට flow: 'auth-code' කෑල්ල එකතු කරන්න
+const googleLoginTrigger = useGoogleLogin({
+  onSuccess: handleGoogleSuccess,
+  onError: () => console.error("Google Login Failed at Frontend"),
+  flow: "auth-code", // 👈 🚨 ඉතාමත් වැදගත්! මේ ලයින් එක අනිවාර්යයෙන්ම දාන්න
+});
+
 
   return (
     <main className="grid min-h-screen bg-white font-['Trebuchet_MS',Arial,sans-serif] md:grid-cols-2">
@@ -194,8 +217,9 @@ export default function Login() {
           </div>
 
           <button
+
             type="button"
-            // onClick={handleGoogleLogin}
+              onClick={() => googleLoginTrigger()} // Google Login trigger function
             className="flex h-12 w-full items-center justify-center gap-3 rounded-md border border-slate-200 bg-white px-4 text-base font-bold text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
