@@ -28,7 +28,13 @@ export default function Login() {
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
         if (login) login(response.data);
-        navigate("/dashboard"); // Using navigate instead of window.location
+        
+        // 👇 Role එක පරික්ෂා කර අදාළ Dashboard එකට යැවීම
+        if (response.data.role === "instructor") {
+          navigate("/instructor-dashboard");
+        } else {
+          navigate("/dashboard"); 
+        }
       }
     } catch (err) {
       setError(
@@ -37,34 +43,40 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-  }; // 👈 handleLogin function ends here
+  };
 
-  // 3. Google OAuth Login Functions (Now properly inside Login component)
-  // 1. handleGoogleSuccess එක මෙහෙම අප්ඩේට් කරන්න
-const handleGoogleSuccess = async (tokenResponse) => {
-  try {
-    console.log("Google Response:", tokenResponse); // 👈 ටෙස්ට් කරලා බලන්න code එක එනවාද කියලා
+  // 3. Google Login Success Handler
+  const handleGoogleSuccess = async (tokenResponse) => {
+    try {
+      console.log("Google Response:", tokenResponse); // ටෙස්ට් කරලා බලන්න code එක එනවාද කියලා
 
-    const res = await API.post("/auth/google-login", {
-      token: tokenResponse.code, // 👈 'access_token' වෙනුවට දැන් මෙතනට එන්නේ 'code' එක
-    });
+      const res = await API.post("/auth/google-login", {
+        token: tokenResponse.code, // 'access_token' වෙනුවට දැන් මෙතනට එන්නේ 'code' එක
+      });
 
-    if (res.data) {
-      login(res.data); 
-      console.log("Google Login Successful!");
-      navigate("/dashboard");
+      if (res.data) {
+        login(res.data); 
+        console.log("Google Login Successful!");
+        
+        // 👇 Google Login එකෙන් පසුවත් Role එක පරික්ෂා කර අදාළ Dashboard එකට යැවීම
+        if (res.data.role === "instructor") {
+          navigate("/instructor-dashboard");
+        } else {
+          navigate("/dashboard"); 
+        }
+      }
+    } catch (err) {
+      console.error("Backend Google Login Failed:", err);
     }
-  } catch (err) {
-    console.error("Backend Google Login Failed:", err);
-  }
-};
+  };
 
-// 2. useGoogleLogin Hook එකට flow: 'auth-code' කෑල්ල එකතු කරන්න
-const googleLoginTrigger = useGoogleLogin({
-  onSuccess: handleGoogleSuccess,
-  onError: () => console.error("Google Login Failed at Frontend"),
-  flow: "auth-code", // 👈 🚨 ඉතාමත් වැදගත්! මේ ලයින් එක අනිවාර්යයෙන්ම දාන්න
-});
+  // 4. useGoogleLogin Hook 
+  const googleLoginTrigger = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => console.error("Google Login Failed at Frontend"),
+    flow: "auth-code", 
+  });
+
 
 
   return (
