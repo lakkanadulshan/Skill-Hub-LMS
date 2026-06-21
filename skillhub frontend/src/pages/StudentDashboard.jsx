@@ -1,3 +1,6 @@
+import React, { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+
 // src/pages/StudentDashboard.jsx
 export default function StudentDashboard() {
   return (
