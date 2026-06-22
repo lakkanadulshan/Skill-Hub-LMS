@@ -48,17 +48,17 @@ export default function Login() {
   // 3. Google Login Success Handler
   const handleGoogleSuccess = async (tokenResponse) => {
     try {
-      console.log("Google Response:", tokenResponse); // ටෙස්ට් කරලා බලන්න code එක එනවාද කියලා
+      console.log("Google Response:", tokenResponse); 
 
       const res = await API.post("/auth/google-login", {
-        token: tokenResponse.code, // 'access_token' වෙනුවට දැන් මෙතනට එන්නේ 'code' එක
+        token: tokenResponse.code, 
       });
 
       if (res.data) {
         login(res.data); 
         console.log("Google Login Successful!");
         
-        // 👇 Google Login එකෙන් පසුවත් Role එක පරික්ෂා කර අදාළ Dashboard එකට යැවීම
+      
         if (res.data.role === "instructor") {
           navigate("/instructor-dashboard");
         } else {
@@ -125,7 +125,6 @@ export default function Login() {
             </div>
           )}
 
-          {/* Form wrapper එක onSubmit={handleLogin} ලෙස නිවැරදි කර ඇත */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label
