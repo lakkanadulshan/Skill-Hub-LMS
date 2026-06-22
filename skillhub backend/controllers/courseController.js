@@ -195,3 +195,100 @@ export const deleteCourse = async (req, res) => {
     });
   }
 };
+
+// Get Enrolled Courses for a Student
+export const getEnrolledCourses = async (req, res) => {
+  try{
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can view enrolled courses",
+      });
+    }
+
+    const enrolledCourses = await course.find({ students: req.user._id }).populate("instructor", "name email");
+
+    res.status(200).json({
+      message: "Enrolled courses retrieved successfully",
+      courses: enrolledCourses,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error retrieving enrolled courses",
+      error: error.message,
+    });
+  }
+};
+
+// Enroll in a Course
+export const enrollInCourse = async (req, res) => {
+  try {
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can enroll in courses",
+      });
+    }
+
+    const courseId = req.params.id;
+    
+    const foundCourse = await course.findById(courseId);
+
+    if (!foundCourse) {
+      return res.status(404).json({
+        message: "Course not found",
+      });
+    }
+
+    if (foundCourse.students.includes(req.user._id)) {
+      return res.status(400).json({
+        message: "Already enrolled in this course",
+      });
+    }
+
+    foundCourse.students.push(req.user._id);
+    await foundCourse.save();
+
+    res.status(200).json({
+      message: "Enrolled in course successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Error enrolling in course",
+      error: error.message,
+    });
+  }
+};
+
+//Unenroll from a Course 
+export const unenrollCourse = async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const userId = req.user._id;
+
+    const foundCourse = await course.findById(courseId);
+
+    if (!foundCourse) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    if (!foundCourse.students.includes(userId)) {
+      return res.status(400).json({ message: "You are not enrolled in this course" });
+    }
+
+    foundCourse.students = foundCourse.students.filter(
+      (studentId) => studentId.toString() !== userId.toString()
+    );
+    
+    await foundCourse.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully unenrolled from the course"
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error unenrolling from course",
+      error: error.message
+    });
+  }
+};

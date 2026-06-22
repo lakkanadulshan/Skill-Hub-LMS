@@ -73,7 +73,6 @@ export const loginUser = async (req, res) => {
 
 // Google Login
 export const googleLogin = async (req, res) => {
-  // Frontend එකෙන් එවන auth code එක ලබා ගැනීම
   const { token } = req.body; 
 
   try {
@@ -87,40 +86,35 @@ export const googleLogin = async (req, res) => {
     
     // console.log("TOKENS:", tokens);
 
-    // ලැබුණු id_token එක පාවිච්චි කර පරිශීලකයාගේ විස්තර verify කිරීම
     const ticket = await client.verifyIdToken({
-      idToken: tokens.id_token, // නිවැරදි ආරක්ෂිත id_token එක
+      idToken: tokens.id_token, 
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    // Verify කරපු token එකෙන් නම සහ ඊමේල් එක ලබා ගැනීම
     const { name, email } = ticket.getPayload();
 
-    // මේ ඊමේල් එකෙන් දැනටමත් user කෙනෙක් දත්ත ගබඩාවේ ඉන්නවාද කියා බැලීම
     let user = await User.findOne({ email });
 
     if (!user) {
-      // අලුත් පරිශීලකයෙක් නම්, අහඹු මුරපදයක් (Random Password) සාදා එය Hash කිරීම
-      // Mongoose හි password අනිවාර්ය (required: true) නිසා මෙසේ කිරීම අත්‍යවශ්‍ය වේ
+
       const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
-      // අලුත් පරිශීලකයාව දත්ත ගබඩාවේ (Database) සේව් කිරීම
+
       user = await User.create({
         name,
         email,
         role: "student", 
-        password: hashedPassword, // අහඹු ලෙස සෑදූ රහස්‍ය මුරපදය මෙතනට ලබාදීම
+        password: hashedPassword, 
       });
     }
 
-    // සාර්ථකව පිවිසි පසු පරිශීලකයාගේ විස්තර සහ අපේම JWT Token එක Frontend එකට යැවීම
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id), // System එක ඇතුලෙ වැඩ කරන්න දෙන අලුත් token එක
+      token: generateToken(user._id), 
     });
   } catch (error) {
     console.log("========== GOOGLE ERROR ==========");
@@ -132,7 +126,6 @@ export const googleLogin = async (req, res) => {
 
     console.log("MESSAGE:", error.message);
 
-    // Frontend එකට 401 (Unauthorized) error එකක් යැවීම
     res.status(401).json({
       message: "Google authentication failed",
     });
