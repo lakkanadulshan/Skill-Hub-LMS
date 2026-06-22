@@ -8,6 +8,7 @@ import InstructorDashboard from "./pages/instructorDashboard";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CourseList from "./pages/CourseList";
+import CourseDetail from "./pages/CourseDetail";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/instructor-dashboard" element={<ProtectedRoute allowedRole="instructor"><InstructorDashboard /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/login" />} />
         <Route path="/courses" element={<CourseList />} />
+        <Route path="/courses/:id" element={<CourseDetail />} />
       </Routes>
     </>
   );
