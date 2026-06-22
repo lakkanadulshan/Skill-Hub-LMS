@@ -17,6 +17,7 @@ export const createCourse = async (req, res) => {
       return res.status(403).json({
         message: "Only instructors can create courses",
       });
+    
     }
 
     // Default to an empty object if req.body is undefined
@@ -105,36 +106,46 @@ export const getCourseById = async (req, res) => {
 export const updateCourse = async (req, res) => {
   try {
     const courseId = req.params.id;
-    const foundCourse = await course.findById(courseId);
+    
+    const foundCourse = await course.findById(courseId); 
 
     if (!foundCourse) {
       return res.status(404).json({
         message: "Course not found",
       });
     }
+
     if (req.user.role !== "instructor") {
       return res.status(403).json({
         message: "Only instructors can update courses",
       });
     }
+
     if (foundCourse.instructor.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         message: "You can only update your own courses",
       });
     }
-    foundCourse.title = req.body.title || foundCourse.title;
 
-    foundCourse.description = req.body.description || foundCourse.description;
-
-    foundCourse.category = req.body.category || foundCourse.category;
-
-    foundCourse.thumbnail = req.body.thumbnail || foundCourse.thumbnail;
+    foundCourse.title = req.body.title ?? foundCourse.title;
+    foundCourse.description = req.body.description ?? foundCourse.description;
+    foundCourse.category = req.body.category ?? foundCourse.category;
+    foundCourse.thumbnail = req.body.thumbnail ?? foundCourse.thumbnail;
+    
+    foundCourse.price = req.body.price ?? foundCourse.price;
+    foundCourse.duration = req.body.duration ?? foundCourse.duration;
+    foundCourse.level = req.body.level ?? foundCourse.level;
+    foundCourse.whatYouWillLearn = req.body.whatYouWillLearn ?? foundCourse.whatYouWillLearn;
+    foundCourse.resourcesCount = req.body.resourcesCount ?? foundCourse.resourcesCount;
+    foundCourse.hasCertificate = req.body.hasCertificate ?? foundCourse.hasCertificate;
 
     await foundCourse.save();
+    
     res.status(200).json({
       message: "Course updated successfully",
       course: foundCourse,
     });
+    
   } catch (error) {
     res.status(500).json({
       message: "Error updating course",

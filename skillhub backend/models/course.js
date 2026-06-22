@@ -1,41 +1,71 @@
 import mongoose from "mongoose";
 
 const courseSchema = new mongoose.Schema({
-    title:{
-        type:String,
-        required:true,
-        unique:true
+    title: {
+        type: String,
+        required: true,
+        unique: true
     },
-    description:{
-        type:String,
-        required:true
+    description: {
+        type: String,
+        required: true
     },
-    instructor:{
+    instructor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required:true
+        required: true
     },
-    students:[
+    students: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
         }
     ],
-    createdAt:{
-        type:Date,
-        default:Date.now
+    category: {
+        type: String,
+        required: true
     },
-    updatedAt:{
-        type:Date,
-        default:Date.now
+    thumbnail: {
+        type: String
     },
-    category:{
-        type:String,
-        required:true
+    
+
+    
+    price: { 
+        type: Number, 
+        default: 0 
     },
-    thumbnail:{
-        type:String
+    duration: { 
+        type: String, 
+        default: "Self-paced" 
+    },
+    level: {
+        type: String, 
+        default: "All Levels" 
+    },
+    whatYouWillLearn: {
+        type: [String], 
+        default: []
+    },
+    resourcesCount: {
+        type: Number, 
+        default: 0 
+    },
+    hasCertificate: {
+        type: Boolean, 
+        default: true 
+    },
+
+   
+
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
     }
-})
+});
 
 export default mongoose.models.Course || mongoose.model("Course", courseSchema);

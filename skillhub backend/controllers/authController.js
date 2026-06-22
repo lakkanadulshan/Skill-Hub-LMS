@@ -13,7 +13,7 @@ const client = new OAuth2Client(
 // Generate Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: "3d",
   });
 };
 
@@ -53,6 +53,7 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
+
 
   if (user && (await bcrypt.compare(password, user.password))) {
     res.json({
