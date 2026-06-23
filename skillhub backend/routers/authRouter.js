@@ -1,10 +1,11 @@
 import express from "express";
-import { registerUser, loginUser, googleLogin } from "../controllers/authController.js";
+import { registerUser, loginUser, googleLogin, verifyOTP } from "../controllers/authController.js";
 
 const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/google-login", googleLogin);
+router.post("/verify-otp", verifyOTP);
 
 export default router;

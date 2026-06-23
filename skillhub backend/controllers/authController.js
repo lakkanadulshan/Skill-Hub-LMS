@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import sendEmail from "../utils/sendEmail.js";
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -17,55 +18,80 @@ const generateToken = (id) => {
   });
 };
 
-// Register
+
+// controllers/authController.js
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  try {
+    const { firstName, lastName, organization, email, password, role } = req.body;
 
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    return res.status(400).json({ message: "User already exists" });
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(String(password), 10);
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = Date.now() + 5 * 60 * 1000; 
+
+    const user = await User.create({
+      firstName,
+      lastName,
+      organization,
+      email,
+      password: hashedPassword,
+      role: role || "student",
+      otp,
+      otpExpires,
+      isVerified: false, 
+    });
+
+    await sendEmail(
+      email,
+      "SkillHub Verification OTP",
+      `Hi ${firstName}, your verification OTP is: ${otp}.`
+    );
+
+    res.status(201).json({ 
+      message: "Registration successful.",
+      userId: user._id 
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Registration failed", error: error.message });
   }
-
-  // Ensure password is a string before hashing
-  const hashedPassword = await bcrypt.hash(String(password), 10);
-
-  const user = await User.create({
-    name,
-    email,
-    role: "student", // default role
-    password: hashedPassword,
-  });
-
-  const responseData = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    token: generateToken(user._id),
-  };
-
-  res.json(responseData);
-
 };
 
-// Login
+// Login a user
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+    // Find user by email
+    const user = await User.findOne({ email });
 
+    // Verify user exists and password is correct
+    if (user && (await bcrypt.compare(password, user.password))) {
+      
+      // Deny login if the account is not verified via OTP
+      if (!user.isVerified) {
+        return res.status(403).json({ message: "Account not verified. Please verify your OTP." });
+      }
 
-  if (user && (await bcrypt.compare(password, user.password))) {
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user._id),
-    });
-  } else {
-    res.status(401).json({ message: "Invalid credentials" });
-    
+      // Return user details and JWT token upon successful login
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        token: generateToken(user._id),
+      });
+    } else {
+      // Return error for invalid credentials
+      res.status(401).json({ message: "Invalid email or password" });
+    }
+  } catch (error) {
+    // Handle login errors
+    res.status(500).json({ message: "Login failed", error: error.message });
   }
 };
 
@@ -95,27 +121,36 @@ export const googleLogin = async (req, res) => {
 
     let user = await User.findOne({ email });
 
-    if (!user) {
+    // ... ඉහත කොටස් එලෙසම ...
 
+    if (!user) {
       const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
+      // නම කොටස් දෙකකට වෙන් කිරීම (Google වෙතින් එන්නේ "John Doe" ලෙස නම්)
+      const nameParts = name.split(" ");
+      const firstName = nameParts[0] || "User";
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Not Provided";
 
       user = await User.create({
-        name,
+        firstName,      // Schema එකට අනුව නිවැරදි නම
+        lastName,       // Schema එකට අනුව නිවැරදි නම
         email,
         role: "student", 
         password: hashedPassword, 
       });
     }
 
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user._id), 
-    });
+res.json({
+  _id: user._id,
+  firstName: user.firstName || name.split(" ")[0], 
+  lastName: user.lastName || name.split(" ").slice(1).join(" ") || " ",
+  email: user.email,
+  role: user.role,
+  token: generateToken(user._id), 
+});
+
+
   } catch (error) {
     console.log("========== GOOGLE ERROR ==========");
 
@@ -129,5 +164,31 @@ export const googleLogin = async (req, res) => {
     res.status(401).json({
       message: "Google authentication failed",
     });
+  }
+};
+
+// Verify OTP
+export const verifyOTP = async (req, res) => {
+  try {
+    const { userId, otp } = req.body;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if OTP matches and not expired
+    if (user.otp === otp && user.otpExpires > Date.now()) {
+      user.isVerified = true;
+      user.otp = undefined; 
+      user.otpExpires = undefined;
+      await user.save();
+
+      res.json({ message: "Account verified successfully! You can now login." });
+    } else {
+      res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Verification failed", error: error.message });
   }
 };

@@ -2,10 +2,21 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    firstName: {
       type: String,
       required: true,
     },
+
+    lastName: {
+      type: String,
+      required: true,
+    },
+
+    organization: {
+      type: String,
+    },
+    // Or Department
+    phone: { type: String },
 
     email: {
       type: String,
@@ -17,18 +28,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     role: {
       type: String,
       enum: ["student", "instructor"],
       default: "student",
     },
-
-    avatar: {
-      
-      type: String, // profile image URL
-    },
-
+    avatar: { type: String },
     bio: {
       type: String,
     },
@@ -46,8 +51,12 @@ const userSchema = new mongoose.Schema(
         ref: "Course",
       },
     ],
+
+    isVerified: { type: Boolean, default: false },
+    otp: { type: String },
+    otpExpires: { type: Date },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.User || mongoose.model("User", userSchema);
