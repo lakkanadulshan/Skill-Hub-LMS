@@ -7,44 +7,43 @@ export default function CourseList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-useEffect(() => {
-  const fetchCourses = async () => {
-    try {
-      const response = await API.get("/courses");
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await API.get("/courses");
 
-      console.log(response.data); 
+        console.log(response.data);
 
-      setCourses(response.data.courses); 
+        setCourses(response.data.courses);
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+        setError("Failed to load courses. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    } catch (err) {
-      console.error("Error fetching courses:", err);
-      setError("Failed to load courses. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchCourses();
-}, []);
+    fetchCourses();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-6 lg:px-12">
       <div className="max-w-7xl mx-auto">
-
         {/* Header */}
-{/* Modernized Header Section */}
+        {/* Modernized Header Section */}
         <div className="mb-12 text-center max-w-3xl mx-auto flex flex-col items-center">
-          
-
-          
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
-            Explore Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Premium Courses</span>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
+            Build Skills for the
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+              {" "}
+              Future
+            </span>
           </h1>
-          
+
           <p className="text-lg md:text-xl text-slate-500 font-medium">
-            Find the perfect course to advance your career. Learn from industry experts and master new skills at your own pace.
+            Learn from experienced instructors, earn valuable knowledge, and
+            stay ahead in a rapidly changing world.
           </p>
-          
         </div>
 
         {/* Error */}
@@ -62,7 +61,6 @@ useEffect(() => {
             </div>
           </div>
         ) : courses.length === 0 ? (
-          
           /* Empty State */
           <div className="text-center py-20">
             <h2 className="text-2xl font-bold text-slate-900 mb-4">
@@ -72,9 +70,7 @@ useEffect(() => {
               We are currently adding new courses. Please check back soon!
             </p>
           </div>
-
         ) : (
-          
           /* Courses Grid */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {courses.map((course) => (
@@ -82,7 +78,6 @@ useEffect(() => {
             ))}
           </div>
         )}
-
       </div>
     </div>
   );

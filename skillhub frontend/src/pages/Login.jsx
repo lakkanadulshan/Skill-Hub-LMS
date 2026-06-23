@@ -112,7 +112,7 @@ export default function Login() {
         <div className="w-full max-w-md rounded-xl border border-slate-100 bg-white p-8 shadow-lg shadow-slate-200/60">
           <div className="mb-6">
             <h2 className="text-4xl font-extrabold tracking-tight text-slate-950">
-              Login!
+              Login
             </h2>
             <p className="mt-3 text-base font-medium text-slate-500">
               Nice to see you! Please log in with your account.

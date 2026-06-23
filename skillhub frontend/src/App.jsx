@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CourseList from "./pages/CourseList";
 import CourseDetail from "./pages/CourseDetail";
+import VerifyOTP from "./pages/verifyOtp";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="*" element={<Navigate to="/login" />} />
         <Route path="/courses" element={<CourseList />} />
         <Route path="/courses/:id" element={<CourseDetail />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
       </Routes>
     </>
   );
