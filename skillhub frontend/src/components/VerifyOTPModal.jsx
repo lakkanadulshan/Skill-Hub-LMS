@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import API from "../services/api";
+import {publicAPI} from "../services/api";
 import Swal from "sweetalert2";
 
 export default function VerifyOTPModal({ isOpen, userId, onClose, onVerified }) {
@@ -12,9 +12,8 @@ export default function VerifyOTPModal({ isOpen, userId, onClose, onVerified }) 
     e.preventDefault();
     setIsLoading(true);
     try {
-      await API.post("/auth/verify-otp", { userId, otp });
+      await publicAPI.post("/auth/verify-otp", { userId, otp });
       
-      // SweetAlert එකේ ප්‍රතිඵලය අනුව redirect කිරීම
       await Swal.fire({
         title: "Success!",
         text: "Account verified! You can now login.",
@@ -22,7 +21,7 @@ export default function VerifyOTPModal({ isOpen, userId, onClose, onVerified }) 
         confirmButtonColor: "#2563eb"
       });
       
-      onVerified(); // Login පිටුවට යාම
+      onVerified(); 
     } catch (err) {
       Swal.fire("Error", err.response?.data?.message || "Invalid OTP", "error");
     } finally {

@@ -1,13 +1,13 @@
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
-import API from "../services/api";
+import {publicAPI} from "../services/api";
 import loginImage from "../assets/login page image.png";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
   // 1. All hooks and states must be inside the component
-  const { login } = useContext(AuthContext); 
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -23,17 +23,17 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await API.post("/auth/login", { email, password });
+      const response = await publicAPI.post("/auth/login", { email, password });
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
         if (login) login(response.data);
-        
+
         // 👇 Role එක පරික්ෂා කර අදාළ Dashboard එකට යැවීම
         if (response.data.role === "instructor") {
           navigate("/instructor-dashboard");
         } else {
-          navigate("/dashboard"); 
+          navigate("/dashboard");
         }
       }
     } catch (err) {
@@ -48,21 +48,20 @@ export default function Login() {
   // 3. Google Login Success Handler
   const handleGoogleSuccess = async (tokenResponse) => {
     try {
-      console.log("Google Response:", tokenResponse); 
+      console.log("Google Response:", tokenResponse);
 
-      const res = await API.post("/auth/google-login", {
-        token: tokenResponse.code, 
+      const res = await publicAPI.post("/auth/google-login", {
+        token: tokenResponse.code,
       });
 
       if (res.data) {
-        login(res.data); 
+        login(res.data);
         console.log("Google Login Successful!");
-        
-      
+
         if (res.data.role === "instructor") {
           navigate("/instructor-dashboard");
         } else {
-          navigate("/dashboard"); 
+          navigate("/dashboard");
         }
       }
     } catch (err) {
@@ -70,14 +69,12 @@ export default function Login() {
     }
   };
 
-  // 4. useGoogleLogin Hook 
+  // 4. useGoogleLogin Hook
   const googleLoginTrigger = useGoogleLogin({
     onSuccess: handleGoogleSuccess,
     onError: () => console.error("Google Login Failed at Frontend"),
-    flow: "auth-code", 
+    flow: "auth-code",
   });
-
-
 
   return (
     <main className="grid min-h-screen bg-white font-['Trebuchet_MS',Arial,sans-serif] md:grid-cols-2">
@@ -207,6 +204,7 @@ export default function Login() {
               <button
                 type="button"
                 className="font-semibold text-blue-600 transition hover:text-blue-700"
+                onClick={() => navigate("/forgot-password")} 
               >
                 Forgot password?
               </button>
@@ -228,9 +226,8 @@ export default function Login() {
           </div>
 
           <button
-
             type="button"
-              onClick={() => googleLoginTrigger()} // Google Login trigger function
+            onClick={() => googleLoginTrigger()} // Google Login trigger function
             className="flex h-12 w-full items-center justify-center gap-3 rounded-md border border-slate-200 bg-white px-4 text-base font-bold text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">

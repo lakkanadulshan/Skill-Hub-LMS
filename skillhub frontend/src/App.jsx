@@ -1,4 +1,3 @@
-// src/App.jsx
 import { Routes, Route, BrowserRouter, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -11,6 +10,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import CourseList from "./pages/CourseList";
 import CourseDetail from "./pages/CourseDetail";
 import VerifyOTP from "./pages/verifyOtp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import About from "./pages/About";
 
 function App() {
   return (
@@ -27,6 +29,9 @@ function App() {
         <Route path="/courses" element={<CourseList />} />
         <Route path="/courses/:id" element={<CourseDetail />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:userId" element={<ResetPassword />} />
+        <Route path="/about" element={<About />} />
       </Routes>
     </>
   );

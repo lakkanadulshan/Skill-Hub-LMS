@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import API from "../services/api";
+import {publicAPI} from "../services/api";
 import Swal from "sweetalert2";
 import VerifyOTPModal from "../components/VerifyOTPModal";
 import { Eye, EyeOff } from "lucide-react";
@@ -29,7 +29,7 @@ export default function Register() {
     }
 
     try {
-      const response = await API.post("/auth/register", formData);
+      const response = await publicAPI.post("/auth/register", formData);
 
       setUserId(response.data.userId);
       setIsModalOpen(true);

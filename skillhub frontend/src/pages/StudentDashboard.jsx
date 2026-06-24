@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import API from "../services/api";
+import {publicAPI} from "../services/api";
 import Swal from "sweetalert2"; // Added SweetAlert2
 
 export default function StudentDashboard() {
@@ -16,7 +16,7 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
       try {
-        const response = await API.get("/courses/enrolled");
+        const response = await publicAPI.get("/courses/enrolled");
         const courses = response.data.courses || response.data;
         setEnrolledCourses(courses);
         setFilteredCourses(courses);
@@ -55,7 +55,7 @@ export default function StudentDashboard() {
     if (!result.isConfirmed) return;
 
     try {
-      await API.post(`/courses/${courseId}/unenroll`);
+      await publicAPI.post(`/courses/${courseId}/unenroll`);
       const updatedCourses = enrolledCourses.filter((course) => course._id !== courseId);
       setEnrolledCourses(updatedCourses);
       setFilteredCourses(updatedCourses);

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import API from "../services/api";
+import {publicAPI} from "../services/api";
 import Swal from "sweetalert2";
 
 export default function VerifyOTP() {
@@ -10,7 +10,7 @@ export default function VerifyOTP() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Register Page එකෙන් එන userId එක මෙතනින් ගන්නවා
+ 
   const userId = location.state?.userId;
 
   const handleVerify = async (e) => {
@@ -18,7 +18,7 @@ export default function VerifyOTP() {
     setIsLoading(true);
 
     try {
-      await API.post("/auth/verify-otp", { userId, otp });
+      await publicAPI.post("/auth/verify-otp", { userId, otp });
       Swal.fire("Success!", "Account verified! You can now login.", "success");
       navigate("/login");
     } catch (err) {
