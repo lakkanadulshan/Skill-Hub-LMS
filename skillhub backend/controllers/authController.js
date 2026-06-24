@@ -2,8 +2,10 @@
 import { OAuth2Client } from "google-auth-library";
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import sendEmail from "../utils/sendEmail.js";
+import nodemailer from "nodemailer";
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -121,20 +123,18 @@ export const googleLogin = async (req, res) => {
 
     let user = await User.findOne({ email });
 
-    // ... ඉහත කොටස් එලෙසම ...
 
     if (!user) {
       const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
-      // නම කොටස් දෙකකට වෙන් කිරීම (Google වෙතින් එන්නේ "John Doe" ලෙස නම්)
       const nameParts = name.split(" ");
       const firstName = nameParts[0] || "User";
       const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Not Provided";
 
       user = await User.create({
-        firstName,      // Schema එකට අනුව නිවැරදි නම
-        lastName,       // Schema එකට අනුව නිවැරදි නම
+        firstName,      
+        lastName,       
         email,
         role: "student", 
         password: hashedPassword, 
@@ -170,7 +170,7 @@ res.json({
 // Verify OTP
 export const verifyOTP = async (req, res) => {
   try {
-    const { userId, otp } = req.body;
+    const { userId, otp, type } = req.body;
     const user = await User.findById(userId);
 
     if (!user) {
@@ -190,5 +190,65 @@ export const verifyOTP = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: "Verification failed", error: error.message });
+  }
+};
+
+
+//forgot password send OTP
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.json({ message: "User not found" });
+    }
+
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = Date.now() + 5 * 60 * 1000;
+
+    user.otp = otp;
+    user.otpExpires = otpExpires;
+    await user.save();
+
+    await sendEmail(
+      email,
+      "SkillHub Password Reset OTP",
+      `Hi ${user.firstName}, your password reset OTP is: ${otp}.`
+    );
+
+res.status(200).json({ message: "OTP sent to email", userId: user._id });
+  } catch (error) {
+    console.error("Forgot Password Error:", error); 
+    res.status(500).json({ message: "Failed to send OTP", error: error.message });
+  }
+
+  }
+
+  // නිවැරදි කළ Reset Password Function එක
+export const resetPassword = async (req, res) => {
+  try {
+    const { userId, newPassword } = req.body; 
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // OTP පරීක්ෂාව ඉවත් කර, කෙලින්ම Password එක Update කරන්න
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    
+    // වැදගත්: භාවිත කළ OTP සහ Expiry අයින් කරන්න
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    res.status(500).json({ message: "Password reset failed", error: error.message });
   }
 };
