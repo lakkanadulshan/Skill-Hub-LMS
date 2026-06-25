@@ -128,7 +128,7 @@ export default function Register() {
             </div>
 
             {/* Organization */}
-            <input
+            {/* <input
               placeholder="Organization / Department"
               className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={(e) =>
@@ -137,7 +137,7 @@ export default function Register() {
                   organization: e.target.value,
                 })
               }
-            />
+            /> */}
 
             {/* Email */}
             <input

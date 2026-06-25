@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import {API} from "../services/api";
+import { API } from "../services/api";
+import Swal from "sweetalert2";
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -11,11 +11,12 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isEnrolling, setIsEnrolling] = useState(false);
+  const [isUnenrolling, setIsUnenrolling] = useState(false);
 
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
-        const response = await API.get(`/courses/${id}`);
+        const response = await API.get(`courses/${id}`);
         setCourse(response.data.course || response.data);
       } catch (err) {
         console.error(err);
@@ -28,17 +29,34 @@ export default function CourseDetail() {
     fetchCourseDetails();
   }, [id]);
 
-  const handleEnroll = async () => {
-    setIsEnrolling(true);
-    try {
-      await API.post(`/courses/${id}/enroll`);
-      // navigate("/dashboard");
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to enroll. Please try again.");
-    } finally {
-      setIsEnrolling(false);
-    }
-  };
+const handleEnroll = async () => {
+  setIsEnrolling(true);
+  try {
+    await API.post(`/enrollments/enroll`, { courseId: id });
+
+    await Swal.fire({
+      title: "Success!",
+      text: "Successfully enrolled in the course",
+      icon: "success",
+      confirmButtonColor: "#3b82f6",
+      width: "20em",
+      padding: "1.5em",
+    });
+
+    navigate("/student-dashboard");
+  } catch (err) {
+    Swal.fire({
+      title: "Oops!",
+      text: err.response?.data?.message || "Failed to enroll.",
+      icon: "error",
+      confirmButtonColor: "#ef4444",
+      width: "20em",
+      padding: "1.5em",
+    });
+  } finally {
+    setIsEnrolling(false);
+  }
+};
 
   if (loading) {
     return (
@@ -76,7 +94,6 @@ export default function CourseDetail() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-
       {/* HERO */}
       <div className="relative bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 text-white px-6 py-16">
         <div className="max-w-6xl mx-auto">
@@ -88,9 +105,7 @@ export default function CourseDetail() {
             {course.title}
           </h1>
 
-          <p className="mt-4 text-blue-100 max-w-3xl">
-            {course.description}
-          </p>
+          <p className="mt-4 text-blue-100 max-w-3xl">{course.description}</p>
 
           <div className="mt-6 flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center font-bold">
@@ -106,10 +121,8 @@ export default function CourseDetail() {
 
       {/* CONTENT */}
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 px-6 py-12">
-
         {/* LEFT */}
         <div className="lg:col-span-2 space-y-6">
-
           {course.whatYouWillLearn?.length > 0 && (
             <div className="bg-white rounded-2xl p-6 shadow-sm border">
               <h2 className="text-xl font-bold mb-4">What You'll Learn</h2>
@@ -135,20 +148,14 @@ export default function CourseDetail() {
 
         {/* SIDEBAR */}
         <div className="lg:col-span-1">
-
           <div className="bg-white rounded-2xl shadow-lg border overflow-hidden sticky top-6">
-
             <img
-              src={
-                course.thumbnail ||
-                "https://placehold.co/800x600"
-              }
+              src={course.thumbnail || "https://placehold.co/800x600"}
               alt={course.title}
               className="h-52 w-full object-cover"
             />
 
             <div className="p-6 space-y-4">
-
               <div className="text-3xl font-bold text-blue-600">
                 {course.price > 0 ? `$${course.price}` : "Free"}
               </div>
@@ -162,10 +169,7 @@ export default function CourseDetail() {
               </button>
 
               <div className="text-sm text-slate-600 space-y-2 pt-2">
-
-                {course.duration && (
-                  <p>📺 {course.duration} video content</p>
-                )}
+                {course.duration && <p>📺 {course.duration} video content</p>}
 
                 {course.resourcesCount > 0 && (
                   <p>📄 {course.resourcesCount} resources</p>
@@ -173,10 +177,7 @@ export default function CourseDetail() {
 
                 <p>♾️ Lifetime access</p>
 
-                {course.hasCertificate && (
-                  <p>🏆 Certificate included</p>
-                )}
-
+                {course.hasCertificate && <p>🏆 Certificate included</p>}
               </div>
 
               <Link
@@ -185,7 +186,6 @@ export default function CourseDetail() {
               >
                 ← Browse more courses
               </Link>
-
             </div>
           </div>
         </div>

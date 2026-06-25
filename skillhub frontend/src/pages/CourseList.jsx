@@ -10,7 +10,7 @@ export default function CourseList() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await API.get("/courses");
+        const response = await API.get("/courses/");
 
         console.log(response.data);
 

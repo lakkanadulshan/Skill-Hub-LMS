@@ -33,7 +33,7 @@ export default function Login() {
         if (response.data.role === "instructor") {
           navigate("/instructor-dashboard");
         } else {
-          navigate("/dashboard");
+          navigate("/student-dashboard");
         }
       }
     } catch (err) {
@@ -61,7 +61,7 @@ export default function Login() {
         if (res.data.role === "instructor") {
           navigate("/instructor-dashboard");
         } else {
-          navigate("/dashboard");
+          navigate("/student-dashboard");
         }
       }
     } catch (err) {

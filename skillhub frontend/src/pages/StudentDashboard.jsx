@@ -14,13 +14,6 @@ export default function StudentDashboard() {
   const userJson = localStorage.getItem("user");
   const user = userJson ? JSON.parse(userJson) : null;
 
-  const handleLogout = () => {
-    console.log("loggout button clicked");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
-
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
       try {
@@ -62,7 +55,7 @@ export default function StudentDashboard() {
     if (!result.isConfirmed) return;
 
     try {
-      await API.post(`/courses/${courseId}/unenroll`);
+      await API.post(`/enrollments/${courseId}/unenroll`);
       const updatedCourses = enrolledCourses.filter(
         (course) => course._id !== courseId
       );
@@ -100,11 +93,7 @@ export default function StudentDashboard() {
     <div className="min-h-screen bg-slate-50 py-10 px-6 lg:px-12">
       <div className="max-w-7xl mx-auto space-y-10">
         <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
-<button
-  onClick={handleLogout}
-className="absolute top-6 right-6 z-50 px-5 py-2 bg-white text-blue-600 font-semibold rounded-xl shadow hover:bg-red-500 hover:text-white hover:scale-105 active:scale-95 transition-all duration-200">
-  Logout
-</button>
+
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full"></div>
           <div className="relative z-10 max-w-xl space-y-4">
             <span className="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
