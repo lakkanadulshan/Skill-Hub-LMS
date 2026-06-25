@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema(
     organization: {
       type: String,
     },
-    // Or Department
+    
     phone: { type: String },
 
     email: {

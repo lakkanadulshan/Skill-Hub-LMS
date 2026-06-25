@@ -6,6 +6,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import sendEmail from "../utils/sendEmail.js";
 import nodemailer from "nodemailer";
+import Enrollment from "../models/enrollment.js";
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -251,4 +252,38 @@ export const resetPassword = async (req, res) => {
     console.error("Reset Password Error:", error);
     res.status(500).json({ message: "Password reset failed", error: error.message });
   }
+};
+
+
+
+//get profile stats 
+export const getProfileStats = async (req, res) => {
+    try {
+        const studentId = req.user.id; 
+        console.log("Requesting user ID:", req.user?.id);
+
+        // 1. Enrolled Courses
+        const enrolledCount = await Enrollment.countDocuments({ 
+          student: studentId });
+
+        // 2. Completed Courses
+        const completedCount = await Enrollment.countDocuments({ 
+            student: studentId, 
+            status: 'completed' 
+        });
+
+        // 3. Active Courses
+        const activeCount = await Enrollment.countDocuments({ 
+            student: studentId, 
+            status: 'in-progress' 
+        });
+
+        res.status(200).json({
+            enrolledCount,
+            completedCount,
+            activeCount
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching stats", error: error.message });
+    }
 };

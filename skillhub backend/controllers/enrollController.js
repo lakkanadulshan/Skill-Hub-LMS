@@ -9,11 +9,13 @@ import User from "../models/user.js";
 
 // Enroll in a course
 export const enrollInCourse = async (req, res) => {
+  
   try {
     const { courseId } = req.body; 
 
     // 1. Get User from req.user (provided by authMiddleware)
     const studentId = req.user._id;
+    console.log("Student ID:", studentId);
 
     // 2. Check Role = student?
     if (req.user.role !== "student") {
@@ -38,6 +40,7 @@ export const enrollInCourse = async (req, res) => {
       course: courseId,
     });
     await newEnrollment.save();
+    console.log("Enrollment saved successfully!");
 
     // Add student to the course's students array
     course.students.push(studentId);
@@ -152,5 +155,38 @@ export const updateProgress = async (req, res) => {
   } catch (error) {
     console.error("Error updating progress:", error);
     res.status(500).json({ message: "Server error while updating progress" });
+  }
+};
+
+//Unenroll from a Course 
+export const unenrollCourse = async (req, res) => {
+  try {
+    const courseId = req.params.courseId;
+    const userId = req.user._id;
+
+    const enrollment = await Enrollment.findOneAndDelete({ student: userId, course: courseId });
+    if (!enrollment) {
+      return res.status(404).json({ message: "Enrollment not found" });
+    }
+
+    // 2. Course එකේ students array එකෙන් ඉවත් කරන්න
+    await Course.findByIdAndUpdate(courseId, {
+      $pull: { students: userId }
+    });
+
+    // 3. User ගේ enrolledCourses array එකෙන් ඉවත් කරන්න
+    await User.findByIdAndUpdate(userId, {
+      $pull: { enrolledCourses: courseId }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully unenrolled from the course"
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error unenrolling from course",
+      error: error.message
+    });
   }
 };

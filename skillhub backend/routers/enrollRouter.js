@@ -1,5 +1,5 @@
 import express from "express";
-import { enrollInCourse, getMyCourses, getStudentsOfCourse, updateProgress } from "../controllers/enrollController.js";
+import { enrollInCourse, getMyCourses, getStudentsOfCourse, updateProgress, unenrollCourse } from "../controllers/enrollController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -15,5 +15,8 @@ router.get("/course/:courseId/students", protect, getStudentsOfCourse);
 
 // Update Progress
 router.put("/:courseId/progress", protect, updateProgress);
+
+// Unenroll from a course
+router.post("/:courseId/unenroll", protect, unenrollCourse);
 
 export default router;
