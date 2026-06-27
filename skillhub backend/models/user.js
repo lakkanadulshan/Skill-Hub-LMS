@@ -33,9 +33,12 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "instructor"],
       default: "student",
     },
-    avatar: { type: String },
+    avatar: { 
+      type: String },
+    
     bio: {
       type: String,
+      default: "",
     },
 
     enrolledCourses: [
