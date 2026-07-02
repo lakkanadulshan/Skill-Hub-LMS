@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API } from "../services/api";
 import { AuthContext } from "./AuthContext";
 
 export function AuthProvider({ children }) {
@@ -22,7 +23,7 @@ export function AuthProvider({ children }) {
     return storedToken && storedToken !== "undefined" ? storedToken : null;
   });
 
-  const login = (data) => {
+  const login = async (data) => {
  
     const userData = data.user || data; 
     const tokenData = data.token;
@@ -32,6 +33,21 @@ export function AuthProvider({ children }) {
 
     if (tokenData) localStorage.setItem("token", tokenData);
     if (userData) localStorage.setItem("user", JSON.stringify(userData));
+
+    if (tokenData) {
+      try {
+        const response = await API.get("/auth/profile");
+        const profileData = response.data?.user || response.data;
+
+        if (profileData) {
+          const mergedUser = { ...userData, ...profileData };
+          setUser(mergedUser);
+          localStorage.setItem("user", JSON.stringify(mergedUser));
+        }
+      } catch (error) {
+        console.error("Error refreshing user profile after login", error);
+      }
+    }
   };
 
   const logout = () => {

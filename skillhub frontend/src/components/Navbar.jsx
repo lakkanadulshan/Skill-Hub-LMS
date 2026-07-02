@@ -42,7 +42,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
-            <img src="/public/skillhub logo.png" alt="SkillHub Logo" />
+            <img src="/skillhub logo.png" alt="SkillHub Logo" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-900">SkillHub</h1>

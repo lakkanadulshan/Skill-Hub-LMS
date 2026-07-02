@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { API } from "../services/api";
 
@@ -22,13 +22,18 @@ export default function StudentProfile() {
   const [saving, setSaving] = useState(false);
 
   const [stats, setStats] = useState({ enrolled: 0, completed: 0, active: 0 });
-  
+
   useEffect(() => {
-  setFormData((prev) => ({
-    ...prev,
-    avatar: user?.avatar,
-  }));
-}, [user]);
+    setFormData({
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      email: user?.email || "",
+      address: user?.address || "",
+      phone: user?.phone || "",
+      bio: user?.bio || "",
+      avatar: user?.avatar || "",
+    });
+  }, [user]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -156,8 +161,55 @@ export default function StudentProfile() {
     }
   };
 
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passData, setPassData] = useState({
+    currentPassword: "",
+    newPassword: "",
+  });
+
+  const handlePasswordSubmit = async () => {
+    if (isChangingPassword) return;
+
+    const payload = {
+      currentPassword: passData.currentPassword.trim(),
+      newPassword: passData.newPassword.trim(),
+    };
+
+    if (!payload.currentPassword || !payload.newPassword) {
+      Swal.fire("Warning", "Please fill all password fields", "warning");
+      return;
+    }
+
+    if (payload.newPassword.length < 6) {
+      Swal.fire(
+        "Warning",
+        "New password must be at least 6 characters",
+        "warning",
+      );
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+      await API.put("/auth/change-password", payload);
+      Swal.fire("Success", "Password updated successfully!", "success");
+      setIsPasswordModalOpen(false);
+      setPassData({ currentPassword: "", newPassword: "" });
+    } catch (error) {
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "Failed to update",
+        "error",
+      );
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 pb-12">
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 pb-12">
       {/* Hero Section */}
       <div className="h-72 bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600 relative">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -372,7 +424,10 @@ export default function StudentProfile() {
                       </p>
                     </div>
 
-                    <button className="px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition">
+                    <button
+                      onClick={() => setIsPasswordModalOpen(true)}
+                      className="px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+                    >
                       Change
                     </button>
                   </div>
@@ -430,6 +485,59 @@ export default function StudentProfile() {
           )}
         </div>
       </div>
+
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl">
+            <h2 className="mb-6 text-2xl font-bold text-slate-900">
+              Change Password
+            </h2>
+
+            <input
+              type="password"
+              placeholder="Current Password"
+              value={passData.currentPassword}
+              className="mb-4 w-full rounded-xl border bg-slate-50 p-3"
+              onChange={(e) =>
+                setPassData({ ...passData, currentPassword: e.target.value })
+              }
+            />
+
+            <input
+              type="password"
+              placeholder="New Password"
+              value={passData.newPassword}
+              className="mb-6 w-full rounded-xl border bg-slate-50 p-3"
+              onChange={(e) =>
+                setPassData({ ...passData, newPassword: e.target.value })
+              }
+            />
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setIsPasswordModalOpen(false);
+                  setPassData({ currentPassword: "", newPassword: "" });
+                }}
+                className="flex-1 rounded-xl px-4 py-3 text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handlePasswordSubmit}
+                disabled={isChangingPassword}
+                className="flex-1 rounded-xl bg-blue-600 px-4 py-3 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isChangingPassword ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    </>
   );
 }
+
+

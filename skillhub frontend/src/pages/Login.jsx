@@ -27,7 +27,7 @@ export default function Login() {
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
-        if (login) login(response.data);
+        if (login) await login(response.data);
 
         // 👇 Role එක පරික්ෂා කර අදාළ Dashboard එකට යැවීම
         if (response.data.role === "instructor") {
