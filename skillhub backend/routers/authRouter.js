@@ -1,5 +1,11 @@
 import express from "express";
-import { registerUser, loginUser, googleLogin, verifyOTP, forgotPassword, resetPassword, getProfileStats, updateProfilePicture, getProfile, updateProfile} from "../controllers/authController.js";
+import { registerUser, loginUser, 
+  googleLogin, verifyOTP, 
+  forgotPassword, resetPassword, 
+  getProfileStats, updateProfilePicture, 
+  getProfile, updateProfile,
+  changePassword
+} from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import upload from "../middleware/multer.js";
 
@@ -21,5 +27,6 @@ router.put(
 );
 router.get("/profile", protect, getProfile);
 router.put("/profile", protect, updateProfile);
+router.put("/change-password", protect, changePassword);
 
 export default router;

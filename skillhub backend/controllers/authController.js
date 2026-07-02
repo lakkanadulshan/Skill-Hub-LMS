@@ -92,6 +92,7 @@ export const loginUser = async (req, res) => {
         lastName: user.lastName,
         organization: user.organization,
         phone: user.phone,
+        address: user.address ?? "",
         email: user.email,
         role: user.role,
         avatar: user.avatar,
@@ -157,6 +158,7 @@ export const googleLogin = async (req, res) => {
       firstName: user.firstName || name.split(" ")[0],
       lastName: user.lastName || name.split(" ").slice(1).join(" ") || " ",
       email: user.email,
+      address: user.address ?? "",
       role: user.role,
       token: generateToken(user._id),
     });
@@ -367,6 +369,7 @@ export const getProfile = async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
+      address: user.address ?? "",
       organization: user.organization,
       bio: user.bio,
       avatar: user.avatar,
@@ -385,12 +388,15 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { firstName, lastName, phone, organization, bio, email } = req.body;
+    const { firstName, lastName, phone, address, organization, bio, email } = req.body;
 
     user.firstName = firstName || user.firstName;
     user.lastName = lastName || user.lastName;
     user.email = email || user.email;
     user.phone = phone || user.phone;
+    if (address !== undefined) {
+      user.address = address;
+    }
     user.organization = organization || user.organization;
     user.bio = bio || user.bio;
 
@@ -402,6 +408,7 @@ export const updateProfile = async (req, res) => {
       lastName: updatedUser.lastName,
       email: updatedUser.email,
       phone: updatedUser.phone,
+      address: updatedUser.address ?? "",
       organization: updatedUser.organization,
       bio: updatedUser.bio,
       avatar: updatedUser.avatar,
@@ -412,3 +419,51 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+
+//change password
+export const changePassword = async (req, res) => {
+try {
+const { currentPassword, newPassword } = req.body;
+const userId = req.user?._id;
+if (!userId) {
+  return res.status(401).json({ message: "Unauthorized" });
+}
+
+if (!currentPassword || !newPassword) {
+  return res.status(400).json({ message: "All fields are required" });
+}
+
+if (currentPassword === newPassword) {
+  return res.status(400).json({
+    message: "New password must be different from current password",
+  });
+}
+
+const user = await User.findById(userId).select("+password");
+if (!user) {
+  return res.status(404).json({ message: "User not found" });
+}
+
+if (!user.password) {
+  return res.status(400).json({
+    message: "No password found for this account",
+  });
+}
+
+const isMatch = await bcrypt.compare(currentPassword, user.password);
+if (!isMatch) {
+  return res.status(400).json({ message: "Current password is incorrect" });
+}
+
+user.password = newPassword; 
+await user.save();
+
+return res.status(200).json({ message: "Password changed successfully" });
+} catch (error) {
+console.error("changePassword error:", error);
+return res.status(500).json({
+message: "Password change failed",
+error: error.message,
+});
+}
+};
