@@ -4,7 +4,7 @@ import Login from "./pages/Login";
 import Contact from "./pages/Contact";
 import Register from "./pages/Register";
 import StudentDashboard from "./pages/StudentDashboard";
-import InstructorDashboard from "./pages/InstructorDashboard";
+import InstructorDashboard from "./pages/instructor/InstructorDashboard";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CourseList from "./pages/CourseList";
@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import StudentProfile from "./pages/StudentProfile";
 import InstructorProfile from "./pages/InstructorProfile";
+import CourseViewer from "./pages/CourseViewer";
 
 function App() {
   return (
@@ -68,6 +69,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/course-viewer/:courseId" element={<CourseViewer />} />
       </Routes>
     </>
   );
