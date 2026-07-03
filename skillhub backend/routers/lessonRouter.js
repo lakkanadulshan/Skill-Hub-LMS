@@ -5,15 +5,15 @@ import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 // Create a new lesson
-router.post("/", protect, createLesson);
+router.post("/create", protect, createLesson);
 
 // Get Lessons by Course
 router.get("/course/:courseId", protect, getLessonByCourse);
 
 // Update lesson
-router.put("/:lessonId", protect, updateLesson);
+router.put("/update/:lessonId", protect, updateLesson);
 
 // Delete lesson
-router.delete("/:lessonId", protect, deleteLesson);
+router.delete("/delete/:lessonId", protect, deleteLesson);
 
 export default router;
