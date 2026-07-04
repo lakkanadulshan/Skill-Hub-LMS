@@ -10,14 +10,13 @@ export default function ProtectedRoute({ children, allowedRole }) {
   }
 
   if (allowedRole && user.role !== allowedRole) {
-    return user.role === "instructor" 
-      ? <Navigate to="/instructor-dashboard" replace /> 
-      : <Navigate to="/student-dashboard" replace />;
-  }
-  if (allowedRole && user.role !== allowedRole) {
-    return user.role === "instructor"
-      ? <Navigate to="/instructor-profile" replace />
-      : <Navigate to="/student-profile" replace />;
+    if (user.role === "instructor") {
+      return <Navigate to="/instructor-dashboard" replace />;
+    } else if (user.role === "admin") {
+      return <Navigate to="/admin-dashboard" replace />;
+    } else {
+      return <Navigate to="/student-dashboard" replace />;
+    }
   }
 
   return children;

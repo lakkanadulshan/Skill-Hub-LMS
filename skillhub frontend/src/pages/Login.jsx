@@ -1,12 +1,12 @@
-import { useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
-import {publicAPI} from "../services/api";
+import { publicAPI } from "../services/api";
 import loginImage from "../assets/login page image.png";
 import { AuthContext } from "../context/AuthContext";
+import { Eye, EyeOff, LogIn, Sparkles, ArrowRight } from "lucide-react";
 
 export default function Login() {
-  // 1. All hooks and states must be inside the component
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -16,20 +16,15 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 2. Standard Email/Password Login Function
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const response = await publicAPI.post("/auth/login", { email, password });
-
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
         if (login) await login(response.data);
-
-        // 👇 Role එක පරික්ෂා කර අදාළ Dashboard එකට යැවීම
         if (response.data.role === "instructor") {
           navigate("/instructor-dashboard");
         } else {
@@ -37,29 +32,23 @@ export default function Login() {
         }
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Please try again.",
-      );
+      setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 3. Google Login Success Handler
   const handleGoogleSuccess = async (tokenResponse) => {
     try {
-      console.log("Google Response:", tokenResponse);
-
       const res = await publicAPI.post("/auth/google-login", {
         token: tokenResponse.code,
       });
-
       if (res.data) {
         login(res.data);
-        console.log("Google Login Successful!");
-
         if (res.data.role === "instructor") {
           navigate("/instructor-dashboard");
+        } else if (res.data.role === "admin") {
+          navigate("/admin-dashboard");
         } else {
           navigate("/student-dashboard");
         }
@@ -69,7 +58,6 @@ export default function Login() {
     }
   };
 
-  // 4. useGoogleLogin Hook
   const googleLoginTrigger = useGoogleLogin({
     onSuccess: handleGoogleSuccess,
     onError: () => console.error("Google Login Failed at Frontend"),
@@ -77,187 +65,132 @@ export default function Login() {
   });
 
   return (
-    <main className="grid min-h-screen bg-white font-['Trebuchet_MS',Arial,sans-serif] md:grid-cols-2">
-      {/* Left Section: Illustration & Branding */}
-      <section className="flex flex-col items-center justify-center bg-[#edf5fc] px-8 py-12 text-center md:px-12">
-        <div className="mx-auto flex flex-col items-center">
-          <div className="flex items-center gap-3">
-            <span className="text-5xl font-extrabold tracking-tight text-slate-950">
-              SkillHub
-            </span>
-          </div>
+    <main className="grid min-h-screen bg-white md:grid-cols-2 font-sans overflow-hidden">
+      
+      {/* --- LEFT SECTION: Branding & Visuals --- */}
+      <section className="relative hidden md:flex flex-col items-center justify-center bg-[#f8fafc] px-12 py-16 overflow-hidden border-r border-slate-100">
+        {/* Decorative Background Blobs */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-purple-50 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 opacity-60"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-50 rounded-full blur-3xl translate-x-1/4 translate-y-1/4 opacity-60"></div>
 
-          <h1 className="mt-5 text-2xl font-extrabold tracking-tight text-slate-900 md:text-3xl">
-            Online Learning Management System
+        <div className="relative z-10 w-full max-w-lg text-center">
+          {/* <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full mb-8 shadow-sm border border-slate-100 animate-in fade-in slide-in-from-top-4 duration-700">
+            <Sparkles size={14} className="text-purple-600" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">SkillHub Learning Net</span>
+          </div> */}
+
+          <h1 className="text-5xl lg:text-6xl font-black text-slate-900 leading-tight tracking-tight">
+            Elevate Your <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">Learning Path.</span>
           </h1>
-          <p className="mt-2 text-base font-medium text-slate-500">
-            Let's learn something new today!
+          <p className="mt-6 text-slate-400 text-lg font-medium leading-relaxed max-w-sm mx-auto">
+            Access your courses, track your progress, and master new skills daily.
           </p>
-        </div>
 
-        <div className="flex w-full justify-center py-6 md:py-8">
-          <img
-            src={loginImage}
-            alt="Online learning illustration"
-            className="max-h-[42vh] w-full max-w-xl object-contain"
-          />
+          <div className="mt-12 flex justify-center drop-shadow-2xl animate-in zoom-in duration-1000">
+            <img
+              src={loginImage}
+              alt="Digital Learning"
+              className="max-h-[38vh] w-full object-contain"
+            />
+          </div>
         </div>
       </section>
 
-      {/* Right Section: Clean Login Form */}
-      <section className="flex items-center justify-center bg-white px-6 py-12 sm:px-10">
-        <div className="w-full max-w-md rounded-xl border border-slate-100 bg-white p-8 shadow-lg shadow-slate-200/60">
-          <div className="mb-6">
-            <h2 className="text-4xl font-extrabold tracking-tight text-slate-950">
-              Login
+      {/* --- RIGHT SECTION: Login Form --- */}
+      <section className="flex items-center justify-center bg-white px-6 py-12 sm:px-12 lg:px-20">
+        <div className="w-full max-w-md animate-in fade-in slide-in-from-right-8 duration-700">
+          
+          <div className="mb-10 text-center md:text-left">
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+              Welcome back
             </h2>
-            <p className="mt-3 text-base font-medium text-slate-500">
-              Nice to see you! Please log in with your account.
+            <p className="mt-3 text-slate-400 font-medium">
+              Please enter your credentials to access your workspace.
             </p>
           </div>
 
           {error && (
-            <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
-              {error}
+            <div className="mb-6 rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-sm font-bold text-rose-600 flex items-center gap-3 animate-in shake duration-500">
+              <span className="w-2 h-2 rounded-full bg-rose-600"></span> {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-2 block text-base font-bold text-slate-700"
-              >
-                Email address
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                 Email
               </label>
-              <div className="flex h-12 overflow-hidden rounded-md border border-slate-200 bg-white transition focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100">
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="E-mail"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full border-0 px-4 text-base font-medium text-slate-800 outline-none placeholder:text-slate-300"
-                />
-              </div>
+              <input
+                id="email" type="email" placeholder="name@company.com"
+                value={email} onChange={(e) => setEmail(e.target.value)} required
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all"
+              />
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-2 block text-base font-bold text-slate-700"
-              >
-                Password
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                 Password
               </label>
-              <div className="flex h-12 overflow-hidden rounded-md border border-slate-200 bg-white transition focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100">
+              <div className="relative group">
                 <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full border-0 px-4 text-base font-medium text-slate-800 outline-none placeholder:text-slate-300"
+                  id="password" type={showPassword ? "text" : "password"}
+                  placeholder="••••••••" value={password}
+                  onChange={(e) => setPassword(e.target.value)} required
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all"
                 />
                 <button
-                  type="button"
-                  onClick={() => setShowPassword((value) => !value)}
-                  className="flex w-12 items-center justify-center text-slate-300 transition hover:text-blue-600"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-purple-600 transition"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3.75 12s3-5.25 8.25-5.25S20.25 12 20.25 12s-3 5.25-8.25 5.25S3.75 12 3.75 12Z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 14.25A2.25 2.25 0 1 0 12 9.75a2.25 2.25 0 0 0 0 4.5Z"
-                    />
-                  </svg>
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              <p className="mt-2 text-sm font-medium text-slate-400">
-                Your password must be 8 characters at least
-              </p>
             </div>
 
-            <div className="flex items-center justify-between gap-4 py-1 text-sm">
-              <label className="flex cursor-pointer items-center gap-2 font-medium text-slate-400">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
-                Remember me
+            <div className="flex items-center justify-between py-1">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input type="checkbox" className="w-4 h-4 rounded-md border-slate-200 text-purple-600 focus:ring-purple-500 transition cursor-pointer" />
+                <span className="text-xs font-bold text-slate-400 group-hover:text-slate-600 transition">Keep me logged in</span>
               </label>
-              <button
-                type="button"
-                className="font-semibold text-blue-600 transition hover:text-blue-700"
-                onClick={() => navigate("/forgot-password")} 
-              >
-                Forgot password?
+              <button type="button" onClick={() => navigate("/forgot-password")} className="text-xs font-black text-purple-600 uppercase tracking-widest hover:text-purple-700 transition">
+                Forgot Password?
               </button>
             </div>
 
             <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 h-12 w-full rounded-md bg-blue-600 px-4 text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+              type="submit" disabled={loading}
+              className="group relative w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-purple-100 hover:shadow-purple-200 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? "Authenticating..." : (
+                <> Sign In <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /> </>
+              )}
             </button>
           </form>
 
-          <div className="my-5 flex items-center gap-4">
-            <div className="h-px flex-1 bg-slate-200" />
-            <span className="text-sm font-semibold text-slate-400">or</span>
-            <div className="h-px flex-1 bg-slate-200" />
+          <div className="my-8 flex items-center gap-4">
+            <div className="h-px flex-1 bg-slate-50" />
+            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">or synchronized with</span>
+            <div className="h-px flex-1 bg-slate-50" />
           </div>
 
           <button
-            type="button"
-            onClick={() => googleLoginTrigger()} // Google Login trigger function
-            className="flex h-12 w-full items-center justify-center gap-3 rounded-md border border-slate-200 bg-white px-4 text-base font-bold text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            type="button" onClick={() => googleLoginTrigger()}
+            className="flex w-full items-center justify-center gap-3 py-4 rounded-2xl border border-slate-100 bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-200 transition-all active:scale-[0.98] shadow-sm"
           >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09Z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.1A6.6 6.6 0 0 1 5.5 12c0-.73.12-1.43.34-2.1V7.06H2.18A11 11 0 0 0 1 12c0 1.78.43 3.46 1.18 4.94l3.66-2.84Z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38Z"
-              />
+            <svg className="h-5 w-5" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09Z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z" />
+              <path fill="#FBBC05" d="M5.84 14.1A6.6 6.6 0 0 1 5.5 12c0-.73.12-1.43.34-2.1V7.06H2.18A11 11 0 0 0 1 12c0 1.78.43 3.46 1.18 4.94l3.66-2.84Z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38Z" />
             </svg>
-            Continue with Google
+            Continue with Google 
           </button>
 
-          <p className="mt-6 text-center text-sm font-medium text-slate-400">
-            New to SkillHub?{" "}
-            <Link
-              to="/register"
-              className="font-bold text-blue-600 transition hover:text-blue-700"
-            >
-              Create an account
+          <p className="mt-10 text-center text-sm font-bold text-slate-400">
+            Don't have an account?{" "}
+            <Link to="/register" className="text-purple-600 hover:text-purple-700 underline underline-offset-4">
+              Join SkillHub Node
             </Link>
           </p>
         </div>
