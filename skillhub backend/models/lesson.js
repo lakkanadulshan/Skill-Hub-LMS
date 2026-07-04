@@ -27,6 +27,13 @@ const lessonSchema = new mongoose.Schema({
         type:Date,
         default:Date.now
     },
+resources: [
+        {
+            name: { type: String, required: true }, 
+            url: { type: String, required: true },  
+            type: { type: String, enum: ["link", "file"], default: "link" }
+        }
+    ],
     duration:{
         type:Number,
         required:true

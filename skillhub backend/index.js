@@ -10,6 +10,7 @@ import enrollRoutes from "./routers/enrollRouter.js";
 import lessonRoutes from "./routers/lessonRouter.js";
 import progressRoutes from "./routers/progressRouter.js";
 import reviewRoutes from "./routers/reviewRouter.js";
+import contactRoutes from "./routers/contactRoutes.js"; 
 
 
 
@@ -36,6 +37,8 @@ app.use("/api/enrollments", enrollRoutes);
 app.use("/api/lessons", lessonRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use('/uploads', express.static('uploads'));
+app.use("/api/contact", contactRoutes); 
 
 // Root Endpoint
 app.get("/", (req, res) => {

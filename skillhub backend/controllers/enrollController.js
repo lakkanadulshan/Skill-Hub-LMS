@@ -5,6 +5,8 @@ Update Progress*/
 
 import Enrollment from "../models/enrollment.js";
 import Course from "../models/course.js";
+import Lesson from "../models/lesson.js";
+import Progress from "../models/progress.js";
 import User from "../models/user.js";
 
 // Enroll in a course
@@ -119,16 +121,11 @@ export const getStudentsOfCourse = async (req, res) => {
 export const updateProgress = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const { progress } = req.body;
+    const { progress, lessonId, completed } = req.body;
 
     // 1. Check if user is a student
     if (!req.user || req.user.role !== "student") {
       return res.status(403).json({ message: "Access denied. Only students can update progress." });
-    }
-
-    // 2. Validate progress value
-    if (progress === undefined || progress < 0 || progress > 100) {
-      return res.status(400).json({ message: "Please provide a valid progress value between 0 and 100." });
     }
 
     // 3. Find Enrollment
@@ -137,18 +134,79 @@ export const updateProgress = async (req, res) => {
       return res.status(404).json({ message: "Enrollment not found for this course." });
     }
 
-    // 4. Update the progress
-    enrollment.progress = progress;
-    if (progress >= 100) {
-        enrollment.completed = true;
-    } else {
-        enrollment.completed = false; // In case progress is reverted below 100
+    // If the UI sends a lessonId, treat this as a lesson completion update.
+    if (lessonId) {
+      const shouldMarkCompleted = completed !== false;
+      const lesson = await Lesson.findById(lessonId);
+      if (!lesson) {
+        return res.status(404).json({ message: "Lesson not found." });
+      }
+
+      if (lesson.course.toString() !== courseId.toString()) {
+        return res.status(400).json({ message: "Lesson does not belong to this course." });
+      }
+
+      let progressRecord = await Progress.findOne({
+        student: req.user._id,
+        course: courseId,
+        lesson: lessonId,
+      });
+
+      if (progressRecord) {
+        progressRecord.completed = shouldMarkCompleted;
+        progressRecord.completedAt = shouldMarkCompleted ? Date.now() : null;
+        progressRecord.lastAccessedAt = Date.now();
+        await progressRecord.save();
+      } else if (shouldMarkCompleted) {
+        progressRecord = new Progress({
+          student: req.user._id,
+          course: courseId,
+          lesson: lessonId,
+          completed: true,
+          completedAt: Date.now(),
+        });
+        await progressRecord.save();
+      }
+
+      const totalLessons = await Lesson.countDocuments({ course: courseId });
+      const completedLessonsDocs = await Progress.find({
+        student: req.user._id,
+        course: courseId,
+        completed: true,
+      }).select("lesson");
+
+      const completedLessons = completedLessonsDocs.map((item) => item.lesson.toString());
+      const calculatedProgress = totalLessons === 0 ? 0 : Math.round((completedLessons.length / totalLessons) * 100);
+
+      enrollment.progress = calculatedProgress;
+      enrollment.completed = calculatedProgress >= 100;
+      await enrollment.save();
+
+      return res.status(200).json({
+        success: true,
+        message: shouldMarkCompleted
+          ? "Lesson marked as completed successfully"
+          : "Lesson marked as incomplete successfully",
+        progress: calculatedProgress,
+        completedLessons,
+        enrollment,
+      });
     }
 
+    // Fallback for the old numeric progress flow.
+    if (progress === undefined || progress < 0 || progress > 100) {
+      return res.status(400).json({ message: "Please provide a valid progress value between 0 and 100." });
+    }
+
+    enrollment.progress = progress;
+    enrollment.completed = progress >= 100;
     await enrollment.save();
 
     res.status(200).json({
+      success: true,
       message: "Progress updated successfully",
+      progress: enrollment.progress,
+      completedLessons: [],
       enrollment
     });
 
@@ -186,6 +244,50 @@ export const unenrollCourse = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error unenrolling from course",
+      error: error.message
+    });
+  }
+};
+
+export const getCourseProgress = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const studentId = req.user._id;
+
+    const enrollment = await Enrollment.findOne({ student: studentId, course: courseId });
+    const completedLessonsDocs = await Progress.find({
+      student: studentId,
+      course: courseId,
+      completed: true,
+    }).select("lesson");
+
+    const completedLessons = completedLessonsDocs.map((item) => item.lesson.toString());
+    const totalLessons = await Lesson.countDocuments({ course: courseId });
+    const calculatedProgress = totalLessons === 0 ? 0 : Math.round((completedLessons.length / totalLessons) * 100);
+    
+    if (!enrollment) {
+      return res.status(200).json({
+        success: true,
+        progress: calculatedProgress,
+        completedLessons
+      });
+    }
+
+    if (enrollment.progress !== calculatedProgress) {
+      enrollment.progress = calculatedProgress;
+      enrollment.completed = calculatedProgress >= 100;
+      await enrollment.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      progress: calculatedProgress,
+      completedLessons
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching enrollment progress",
       error: error.message
     });
   }
