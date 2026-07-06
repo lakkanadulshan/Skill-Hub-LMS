@@ -1,16 +1,43 @@
 import React, { useState, useEffect } from "react";
 import { API } from "../../services/api.js";
-import { Users, BookOpen, Mail, TrendingUp, Activity, PieChart, ArrowUpRight } from "lucide-react";
+import { Users, BookOpen, Mail, TrendingUp, Activity, PieChart, ArrowUpRight, ShieldCheck, Clock } from "lucide-react";
 
 export default function AdminOverview() {
   const [stats, setStats] = useState({ students: 0, instructors: 0, courses: 0, messages: 0 });
+  const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await API.get("/admin/stats");
-        if (res.data.success) setStats(res.data.stats);
+        if (res.data.success) {
+          setStats(res.data.stats);
+
+          const activities = [];
+
+          if (res.data.recentCourses && res.data.recentCourses.length > 0) {
+            res.data.recentCourses.forEach((c) => {
+              activities.push({
+                id: `c-${c._id}`,
+                text: `New course structure '${c.title}' status flagged as [${c.status.toUpperCase()}].`,
+                time: "Course Log"
+              });
+            });
+          }
+
+          if (res.data.recentUsers && res.data.recentUsers.length > 0) {
+            res.data.recentUsers.forEach((u) => {
+              activities.push({
+                id: `u-${u._id}`,
+                text: `New identity node created: ${u.firstName} ${u.lastName} registered as ${u.role}.`,
+                time: "Identity Log"
+              });
+            });
+          }
+
+          setRecentActivities(activities);
+        }
       } catch (err) {
         console.error("Error fetching admin stats:", err);
       } finally {
@@ -59,12 +86,38 @@ export default function AdminOverview() {
         ))}
       </div>
 
+      {/* 🟢 REAL-TIME STREAM AUDIT SECTION */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
+        <div className="flex items-center gap-2 mb-6 border-b border-slate-50 pb-4">
+          <ShieldCheck size={20} className="text-purple-600" />
+          <h3 className="text-xl font-black text-slate-900 tracking-tight">Real-time Stream Audit</h3>
+        </div>
+
+        <div className="space-y-4">
+          {recentActivities.length === 0 ? (
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center py-6">No recent system variations recorded.</p>
+          ) : (
+            recentActivities.map((activity) => (
+              <div key={activity.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100/50 hover:bg-white hover:border-purple-100 transition-all group">
+                <div className="flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-purple-600 group-hover:animate-ping"></div>
+                  <p className="text-sm font-bold text-slate-700">{activity.text}</p>
+                </div>
+                <span className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0">
+                  <Clock size={12} /> {activity.time}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       {/* FOOTER METRIC */}
       <div className="bg-white rounded-[2.5rem] border border-slate-100 p-10 flex flex-col md:flex-row items-center gap-10">
          <div className="w-20 h-20 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
             <PieChart size={36} className="text-purple-600" />
          </div>
-         <div>
+         <div className="flex-grow">
             <h4 className="text-xl font-black text-slate-900">Governance Integrity Check</h4>
             <p className="text-slate-500 font-medium mt-1">The SkillHub main-net is operating at 99.9% efficiency. User growth trend is currently positive by 15.4% this cycle.</p>
          </div>

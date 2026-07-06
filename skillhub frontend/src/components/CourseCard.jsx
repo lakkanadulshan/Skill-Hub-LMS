@@ -1,50 +1,69 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-// course කියන object එක (props විදිහට) මේකට එනවා
 export default function CourseCard({ course }) {
   if (!course) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-slate-100 flex flex-col h-full">
+    <div className="group bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
       
-      {/* 1. Course Image */}
-      <div className="relative h-48 w-full bg-slate-200">
+      {/* 1. Course Image Section */}
+      <div className="relative h-52 w-full overflow-hidden bg-slate-100">
         <img
           src={course.thumbnail || "https://via.placeholder.com/400x250?text=Course+Image"} 
           alt={course.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        {/* Category Badge */}
-        <span className="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-          {course.category || "General"}
-        </span>
+        {/* Category Badge - Glassmorphism touch */}
+        <div className="absolute top-3 left-3">
+          <span className="bg-white/90 backdrop-blur-sm text-slate-800 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-sm border border-white/50">
+            {course.category || "General"}
+          </span>
+        </div>
       </div>
 
-      {/* 2. Course Details */}
+      {/* 2. Course Details Content */}
       <div className="p-5 flex flex-col flex-grow">
         
- 
+        {/* Instructor Info */}
         {course.instructor?.name && (
-          <p className="text-sm text-slate-500 font-medium mb-1">
-            By {course.instructor.name}
-          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-blue-600">
+                    {course.instructor.name.charAt(0)}
+                </span>
+            </div>
+            <p className="text-xs text-slate-500 font-semibold tracking-wide">
+              {course.instructor.name}
+            </p>
+          </div>
         )}
 
         {/* Title */}
-        <h3 className="text-lg font-bold text-slate-900 leading-tight mb-2 line-clamp-2">
+        <h3 className="text-lg font-bold text-slate-800 leading-snug mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
           {course.title}
         </h3>
 
-        {/* Price */}
-        <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-100">
+        {/* Price & Action Section */}
+        <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-50">
+          
+          {/* Price - Added a placeholder price style if needed later */}
+          <div className="flex flex-col">
+            <span className="text-xs text-slate-400 uppercase font-bold tracking-tighter">Price</span>
+            <span className="text-lg font-black text-slate-900 leading-none">
+              {course.price > 0 ? `$${course.price}` : "FREE"}
+            </span>
+          </div>
   
           {/* View Button */}
           <Link 
             to={`/courses/${course._id}`} 
-            className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors"
+            className="inline-flex items-center justify-center px-4 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-all duration-300 shadow-lg shadow-slate-200 hover:shadow-blue-200 active:scale-95"
           >
-            View Details &rarr;
+            Details
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </Link>
         </div>
       </div>

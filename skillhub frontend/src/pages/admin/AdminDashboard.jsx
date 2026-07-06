@@ -57,15 +57,24 @@ export default function AdminDashboard() {
   return (
     <div className="flex h-screen bg-[#f8fafc] overflow-hidden font-sans">
       
-      {/* --- SIDEBAR --- */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 shadow-xl transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* --- 🟢 SIDEBAR (FIXED CSS CLASSES) --- */}
+      <div 
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 shadow-xl transition-transform duration-300 lg:static lg:translate-x-0 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
         <div className="flex flex-col h-full">
           <div className="p-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                <ShieldCheck size={24} className="text-white" />
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg">
+                  <ShieldCheck size={24} className="text-white" />
+                </div>
+                <span className="text-2xl font-black text-slate-900 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700">skillhub</span>
               </div>
-              <span className="text-2xl font-black text-slate-900 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700">skillhub</span>
+              <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-1 text-slate-400 hover:text-slate-600">
+                <X size={20} />
+              </button>
             </div>
             
             <div className="mt-8 p-4 bg-purple-50 rounded-[2rem] border border-purple-100 flex items-center gap-3">
@@ -101,17 +110,23 @@ export default function AdminDashboard() {
             </button>
           </div>
         </div>
-      </aside>
+      </div>
 
       {/* --- MAIN CONTENT --- */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
         <header className="h-24 bg-white/80 backdrop-blur-md border-b border-slate-100 px-10 flex items-center justify-between sticky top-0 z-40">
           <div className="flex items-center gap-4">
-             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="lg:hidden p-2 text-slate-500"><Menu /></button>
-             <div>
+              {/* 🟢 ඩෙස්ක්ටොප්/මොබයිල් හැම එකකදීම වැඩ කරන මෙනු බටන් එක */}
+              <button 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                className="p-2 text-slate-500 hover:bg-slate-50 rounded-xl transition-all"
+              >
+                <Menu size={20} />
+              </button>
+              <div>
                 <h1 className="text-2xl font-black text-slate-900 tracking-tight capitalize">{activeTab} Control</h1>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Platform Governance Module</p>
-             </div>
+              </div>
           </div>
           
           <div className="hidden sm:flex items-center gap-4 px-6 py-2.5 bg-slate-50 rounded-full border border-slate-100">
@@ -122,7 +137,7 @@ export default function AdminDashboard() {
 
         <main className="flex-1 overflow-y-auto p-10">
           <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-             {activeTab === "overview" && <AdminOverview />}
+             {activeTab === "overview" && <AdminOverview setIsSidebarOpen={setIsSidebarOpen} />}
              {activeTab === "users" && <AdminUsers />}
              {activeTab === "courses" && <AdminCourses />}
              {activeTab === "messages" && <AdminMessages />}

@@ -9,13 +9,8 @@ import {
   Mail, 
   Edit3, 
   ShieldCheck, 
-  CheckCircle2, 
-  Trash2, 
   X, 
   Save,
-  Activity,
-  Award,
-  BookOpen,
   ShieldAlert
 } from "lucide-react";
 
@@ -32,6 +27,8 @@ export default function AdminProfile() {
     address: user?.address || "",
     phone: user?.phone || "",
     bio: user?.bio || "",
+    avatar: user?.avatar || "",
+    avatarFile: null, // 🟢 Initialize clear state
   });
 
   const [activeTab, setActiveTab] = useState("overview");
@@ -47,6 +44,7 @@ export default function AdminProfile() {
       phone: user?.phone || "",
       bio: user?.bio || "",
       avatar: user?.avatar || "",
+      avatarFile: null,
     });
   }, [user]);
 
@@ -83,8 +81,11 @@ export default function AdminProfile() {
   const handleUpdate = async () => {
     setSaving(true);
     try {
-      await API.put("/auth/profile", formData);
-      localStorage.setItem("user", JSON.stringify({ ...user, ...formData }));
+      const res = await API.put("/auth/profile", formData);
+      const updatedUserData = res.data.user || { ...user, ...formData };
+      
+      localStorage.setItem("user", JSON.stringify(updatedUserData));
+      setUser(updatedUserData);
       setIsEditing(false);
       Swal.fire("Success", "Admin profile updated successfully!", "success");
     } catch (err) {
@@ -128,9 +129,13 @@ export default function AdminProfile() {
       });
 
       Swal.fire({ icon: "success", title: "Updated!", text: "Photo updated successfully" });
+      
       const updatedUser = { ...user, avatar: res.data.avatar };
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
+      
+      // 🟢 Optimization: Upload එකෙන් පස්සේ avatarFile එක null කරලා බටන් එක අයින් කරනවා
+      setFormData(prev => ({ ...prev, avatarFile: null }));
     } catch (err) {
       Swal.fire({ icon: "error", title: "Upload Failed", text: err.response?.data?.message || err.message });
     }
@@ -166,7 +171,7 @@ export default function AdminProfile() {
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-20 font-sans">
       
-      {/* HERO SECTION - Same as Student */}
+      {/* HERO SECTION */}
       <div className="h-80 bg-gradient-to-br from-purple-600 via-indigo-600 to-indigo-700 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-400/20 blur-3xl rounded-full"></div>
@@ -174,7 +179,7 @@ export default function AdminProfile() {
 
       <div className="max-w-6xl mx-auto px-6 -mt-32 relative z-10">
         
-        {/* PROFILE IDENTITY CARD - Same as Student */}
+        {/* PROFILE IDENTITY CARD */}
         <div className="bg-white/80 backdrop-blur-2xl rounded-[3rem] shadow-2xl shadow-slate-200 border border-white p-10">
           <div className="flex flex-col lg:flex-row items-center gap-10">
             
@@ -189,7 +194,6 @@ export default function AdminProfile() {
                       {user?.firstName?.charAt(0)?.toUpperCase()}
                     </div>
                   )}
-                  {/* Status Indicator */}
                   <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white animate-pulse"></div>
                 </div>
                 <button
@@ -227,7 +231,7 @@ export default function AdminProfile() {
           </div>
         </div>
 
-        {/* TABS Selector - Same Style as Student */}
+        {/* TABS Selector */}
         <div className="flex gap-4 mt-12 w-fit mx-auto lg:mx-0">
           {["overview", "security"].map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${activeTab === tab ? "bg-purple-600 text-white shadow-xl shadow-purple-200" : "bg-white text-slate-400 hover:text-slate-600 border border-slate-100"}`}>
@@ -236,7 +240,7 @@ export default function AdminProfile() {
           ))}
         </div>
 
-        {/* TAB CONTENT - Same Style as Student */}
+        {/* TAB CONTENT */}
         <div className="bg-white rounded-[3rem] shadow-xl border border-slate-100 mt-8 p-10">
           
           {/* OVERVIEW SECTION */}
@@ -310,7 +314,7 @@ export default function AdminProfile() {
         </div>
       </div>
 
-      {/* PASSWORD MODAL - Same style as Student */}
+      {/* PASSWORD MODAL */}
       {isPasswordModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm bg-black/40">
           <div className="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl relative z-10 animate-in zoom-in-95 duration-300">

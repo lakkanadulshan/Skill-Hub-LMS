@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { API } from "../../services/api.js";
-import { PencilLine, Trash2, Plus, BookOpen, Clock, Award, Layers, Image as ImageIcon, X } from "lucide-react";
+import { PencilLine, Trash2, Plus, BookOpen, Clock, Award, Layers, Image as ImageIcon, X, AlertCircle } from "lucide-react";
 
 export default function CoursesTab({ onViewLessons }) {
   const [courses, setCourses] = useState([]);
@@ -30,10 +30,10 @@ export default function CoursesTab({ onViewLessons }) {
   const fetchMyCourses = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/courses/");
+      const res = await API.get("/courses/instructor/my-courses"); 
       setCourses(res.data.courses || res.data || []);
     } catch (err) {
-      console.error("Error fetching courses:", err);
+      console.error("Error fetching instructor courses:", err);
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ export default function CoursesTab({ onViewLessons }) {
         Swal.fire("Success", "Course updated successfully!", "success");
       } else {
         await API.post("/courses/create", formData);
-        Swal.fire("Success", "Course created successfully!", "success");
+        Swal.fire("Success", "Course created successfully! Waiting for Admin approval.", "success");
       }
 
       closeModal();
@@ -197,9 +197,21 @@ export default function CoursesTab({ onViewLessons }) {
                   alt={course.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
                 />
-                <div className="absolute top-4 left-4 flex gap-2">
-                   <span className="bg-white/90 backdrop-blur-md text-purple-700 text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm border border-white uppercase tracking-widest">
+                
+                {/* 🟢 2. වෙනස්කම: Real LMS Status Badge එක (Category එකට එහා පැත්තෙන් වම් කෙළවරේ වදිනවා) */}
+                <div className="absolute top-4 left-4 flex gap-2 z-10">
+                  <span className="bg-white/90 backdrop-blur-md text-purple-700 text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm border border-white uppercase tracking-widest">
                     {course.category}
+                  </span>
+                  
+                  <span className={`backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm border uppercase tracking-widest ${
+                    course.status === "approved"
+                      ? "bg-emerald-500/90 border-emerald-400"
+                      : course.status === "rejected"
+                      ? "bg-rose-500/90 border-rose-400"
+                      : "bg-amber-500/90 border-amber-400 animate-pulse"
+                  }`}>
+                    {course.status || "pending"}
                   </span>
                 </div>
 
