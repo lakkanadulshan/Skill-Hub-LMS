@@ -1,5 +1,5 @@
 import express from "express";
-import { createCourse, getAllCourses, getCourseById, updateCourse, deleteCourse, getEnrolledCourses, enrollInCourse, getInstructorStats } from "../controllers/courseController.js";
+import { createCourse, getAllCourses, getCourseById, updateCourse, deleteCourse, getEnrolledCourses, enrollInCourse, getInstructorStats,getInstructorCourses } from "../controllers/courseController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import courseUpload from "../middleware/courseMulter.js";
 const router = express.Router();
@@ -13,5 +13,6 @@ router.delete("/:id", protect, deleteCourse);
 router.post("/:id/enroll", protect, enrollInCourse);
 // router.post("/:id/unenroll", protect, unenrollCourse);
 router.get("/instructor/stats", protect, getInstructorStats);
+router.get("/instructor/my-courses", protect, getInstructorCourses);
 
 export default router;

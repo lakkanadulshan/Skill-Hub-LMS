@@ -114,7 +114,6 @@ export const googleLogin = async (req, res) => {
   const { token } = req.body;
 
   try {
-    // Google සේවාදායකයෙන් access සහ id tokens ලබා ගැනීම
     const { tokens } = await client.getToken({
       code: token,
       client_id: process.env.GOOGLE_CLIENT_ID,
@@ -240,7 +239,8 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// නිවැරදි කළ Reset Password Function එක
+
+// Reset Password
 export const resetPassword = async (req, res) => {
   try {
     const { userId, newPassword } = req.body;
@@ -250,11 +250,9 @@ export const resetPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // OTP පරීක්ෂාව ඉවත් කර, කෙලින්ම Password එක Update කරන්න
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
 
-    // වැදගත්: භාවිත කළ OTP සහ Expiry අයින් කරන්න
     user.otp = undefined;
     user.otpExpires = undefined;
 
@@ -305,12 +303,10 @@ export const getProfileStats = async (req, res) => {
 };
 
 
-
+// Update Profile Picture
 export const updateProfilePicture = async (req, res) => {
   try {
-   
     const userId = req.user._id;
-    
 
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
@@ -326,7 +322,7 @@ export const updateProfilePicture = async (req, res) => {
     const oldAvatar = user.avatar;
 
     // 🔥 STEP 2: upload new image
-const result = await uploadFromBuffer(req.file.buffer);
+    const result = await uploadFromBuffer(req.file.buffer);
 
     // 🔥 STEP 3: update DB ONCE
     user.avatar = result.secure_url;
@@ -350,7 +346,7 @@ const result = await uploadFromBuffer(req.file.buffer);
       avatar: user.avatar,
     });
   } catch (error) {
-    console.log("🔥 PROFILE PICTURE ERROR:", error); 
+    console.log("🔥 PROFILE PICTURE ERROR:", error);
 
     res.status(500).json({
       message: "Upload failed",
@@ -361,7 +357,7 @@ const result = await uploadFromBuffer(req.file.buffer);
 
 export const getProfile = async (req, res) => {
   try {
-    const user = req.user; 
+    const user = req.user;
 
     res.json({
       _id: user._id,
@@ -380,6 +376,8 @@ export const getProfile = async (req, res) => {
   }
 };
 
+
+// Update Profile
 export const updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -388,7 +386,8 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { firstName, lastName, phone, address, organization, bio, email } = req.body;
+    const { firstName, lastName, phone, address, organization, bio, email } =
+      req.body;
 
     user.firstName = firstName || user.firstName;
     user.lastName = lastName || user.lastName;
@@ -419,51 +418,53 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-
-//change password
+// Change Password
 export const changePassword = async (req, res) => {
-try {
-const { currentPassword, newPassword } = req.body;
-const userId = req.user?._id;
-if (!userId) {
-  return res.status(401).json({ message: "Unauthorized" });
-}
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-if (!currentPassword || !newPassword) {
-  return res.status(400).json({ message: "All fields are required" });
-}
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
-if (currentPassword === newPassword) {
-  return res.status(400).json({
-    message: "New password must be different from current password",
-  });
-}
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        message: "New password must be different from current password",
+      });
+    }
 
-const user = await User.findById(userId).select("+password");
-if (!user) {
-  return res.status(404).json({ message: "User not found" });
-}
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-if (!user.password) {
-  return res.status(400).json({
-    message: "No password found for this account",
-  });
-}
+    if (!user.password) {
+      return res.status(400).json({
+        message: "No password found for this account",
+      });
+    }
 
-const isMatch = await bcrypt.compare(currentPassword, user.password);
-if (!isMatch) {
-  return res.status(400).json({ message: "Current password is incorrect" });
-}
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
 
-user.password = newPassword; 
-await user.save();
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-return res.status(200).json({ message: "Password changed successfully" });
-} catch (error) {
-console.error("changePassword error:", error);
-return res.status(500).json({
-message: "Password change failed",
-error: error.message,
-});
-}
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("changePassword error:", error);
+    return res.status(500).json({
+      message: "Password change failed",
+      error: error.message,
+    });
+  }
 };

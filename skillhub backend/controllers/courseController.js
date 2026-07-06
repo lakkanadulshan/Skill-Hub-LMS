@@ -1,20 +1,16 @@
 import Course from "../models/course.js";
 import Lesson from "../models/lesson.js";
 
-// 1. Create Course
+// 1. Create Course (Instructor Only)
 export const createCourse = async (req, res) => {
   try {
     if (!req.user || req.user.role !== "instructor") {
-      return res.status(403).json({
-        message: "Only instructors can create courses",
-      });
+      return res.status(403).json({ message: "Only instructors can create courses" });
     }
 
     const thumbnail = req.file?.path;
     if (!thumbnail) {
-      return res.status(400).json({
-        message: "Please upload a course thumbnail image",
-      });
+      return res.status(400).json({ message: "Please upload a course thumbnail image" });
     }
 
     const {
@@ -26,19 +22,13 @@ export const createCourse = async (req, res) => {
       level,
       resourcesCount,
       hasCertificate,
-    } = req.body || {};
-
-    if (!title || !description || !category) {
-      return res.status(400).json({
-        message: "Please provide title, description, and category",
-      });
-    }
+    } = req.body;
 
     let parsedWhatYouWillLearn = [];
     if (req.body.whatYouWillLearn) {
       try {
         parsedWhatYouWillLearn = JSON.parse(req.body.whatYouWillLearn);
-      } catch {
+      } catch (e) {
         parsedWhatYouWillLearn = [];
       }
     }
@@ -54,100 +44,86 @@ export const createCourse = async (req, res) => {
       resourcesCount: Number(resourcesCount) || 0,
       hasCertificate: hasCertificate === "true" || hasCertificate === true,
       whatYouWillLearn: parsedWhatYouWillLearn,
-      instructor: req.user._id,
+      instructor: req.user._id, 
+      status: "pending", 
     });
 
-    return res.status(201).json({
-      message: "Course created successfully",
+    res.status(201).json({
+      success: true,
+      message: "Course created successfully. Waiting for Admin approval.",
       course: newCourse,
     });
   } catch (error) {
-    return res.status(500).json({
+    res.status(500).json({
+      success: false,
       message: "Error creating course",
       error: error.message,
     });
   }
 };
 
-// 2. Get all courses
+// 2. Get all courses (Public/Student View)
 export const getAllCourses = async (req, res) => {
   try {
-    if (req.user.role !== "instructor" && req.user.role !== "student" && req.user.role !== "admin") {
-      return res.status(403).json({
-        message: "Only instructors, students, and admins can view courses",
-      });
-    }
-    // 🟢 මෙතන populate එක firstName, lastName වලට වෙනස් කළා
-    const courses = await Course.find().populate("instructor", "firstName lastName email");
+    const courses = await Course.find({ status: "approved" })
+      .populate("instructor", "firstName lastName email")
+      .sort({ createdAt: -1 });
+
     res.status(200).json({
-      message: "Courses retrieved successfully",
+      success: true,
       courses,
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: "Error retrieving courses",
       error: error.message,
     });
   }
 };
 
-// 3. Get single course
+// 3. Get single course by ID
 export const getCourseById = async (req, res) => {
   try {
-    if (req.user.role !== "instructor" && req.user.role !== "student") {
-      return res.status(403).json({
-        message: "Only instructors and students can view courses",
-      });
-    }
     const courseId = req.params.id;
-    // 🟢 මෙතනත් populate එක firstName, lastName වලට වෙනස් කළා
-    const courseData = await Course.findById(courseId).populate("instructor", "firstName lastName email");
+    const courseData = await Course.findById(courseId)
+      .populate("instructor", "firstName lastName email");
     
     if (!courseData) {
-      return res.status(404).json({
-        message: "Course not found",
-      });
+      return res.status(404).json({ message: "Course not found" });
     }
+
     res.status(200).json({
-      message: "Course retrieved successfully",
+      success: true,
       course: courseData,
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: "Error retrieving course",
       error: error.message,
     });
   }
 };
 
-// 4. Update course
+// 4. Update course (Instructor Only)
 export const updateCourse = async (req, res) => {
   try {
     const courseId = req.params.id;
     const foundCourse = await Course.findById(courseId); 
 
-    if (!foundCourse) {
-      return res.status(404).json({ message: "Course not found" });
-    }
-
-    if (req.user.role !== "instructor") {
-      return res.status(403).json({ message: "Only instructors can update courses" });
-    }
+    if (!foundCourse) return res.status(404).json({ message: "Course not found" });
 
     if (foundCourse.instructor.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "You can only update your own courses" });
     }
 
-    if (req.file && req.file.path) {
-      foundCourse.thumbnail = req.file.path;
-    }
+    if (req.file && req.file.path) foundCourse.thumbnail = req.file.path;
 
     if (req.body.whatYouWillLearn) {
       try {
         foundCourse.whatYouWillLearn = JSON.parse(req.body.whatYouWillLearn);
-      } catch (e) {
-        console.error("Error parsing whatYouWillLearn in update:", e);
-      }
+      } catch (e) { console.error(e); }
     }
 
     foundCourse.title = req.body.title ?? foundCourse.title;
@@ -159,73 +135,58 @@ export const updateCourse = async (req, res) => {
     foundCourse.resourcesCount = req.body.resourcesCount ? Number(req.body.resourcesCount) : foundCourse.resourcesCount;
     foundCourse.hasCertificate = req.body.hasCertificate === "true" || req.body.hasCertificate === true;
 
+    if (foundCourse.status === "approved" || foundCourse.status === "rejected") {
+      foundCourse.status = "pending"; 
+    }
+
     const updatedCourse = await foundCourse.save();
-    
-    res.status(200).json({
-      message: "Course updated successfully",
-      course: updatedCourse,
-    });
+    res.status(200).json({ success: true, message: "Course updated successfully. Sent for admin review.", course: updatedCourse });
     
   } catch (error) {
-    res.status(500).json({
-      message: "Error updating course",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Error updating course", error: error.message });
   }
 };
 
-// 5. Delete Course
+// 5. Delete Course (Instructor Only)
 export const deleteCourse = async (req, res) => {
-  const courseId = req.params.id;
   try {
-    if (req.user.role !== "instructor") {
-      return res.status(403).json({ message: "Only instructors can delete courses" });
-    }
-
-    const foundCourse = await Course.findById(courseId);
+    const foundCourse = await Course.findById(req.params.id);
     if (!foundCourse) return res.status(404).json({ message: "Course not found" });
     
-    if (foundCourse.instructor.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "You can only delete your own courses" });
+    if (foundCourse.instructor.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Not authorized" });
     }
 
-    await foundCourse.deleteOne();
-    res.status(200).json({ message: "Course deleted successfully" });
+    await Course.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: "Course deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting course", error: error.message });
+    res.status(500).json({ success: false, message: "Error deleting course", error: error.message });
   }
 };
 
-// 6. Get Enrolled Courses
+// 6. Get Enrolled Courses for a Student
 export const getEnrolledCourses = async (req, res) => {
   try {
-    if (req.user.role !== "student") {
-      return res.status(403).json({ message: "Only students can view enrolled courses" });
-    }
-
-    // 🟢 මෙතනත් populate නිවැරදි කළා
-    const enrolledCourses = await Course.find({ students: req.user._id }).populate("instructor", "firstName lastName email");
+    const enrolledCourses = await Course.find({ students: req.user._id })
+      .populate("instructor", "firstName lastName email");
 
     res.status(200).json({
-      message: "Enrolled courses retrieved successfully",
+      success: true,
       courses: enrolledCourses,
     });
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving enrolled courses", error: error.message });
+    res.status(500).json({ success: false, message: "Error fetching enrolled courses", error: error.message });
   }
 };
 
 // 7. Enroll in a Course
 export const enrollInCourse = async (req, res) => {
   try {
-    if (req.user.role !== "student") {
-      return res.status(403).json({ message: "Only students can enroll in courses" });
-    }
-
     const courseId = req.params.id;
     const foundCourse = await Course.findById(courseId);
 
     if (!foundCourse) return res.status(404).json({ message: "Course not found" });
+    if (foundCourse.status !== "approved") return res.status(403).json({ message: "This course is not yet available for enrollment" });
 
     if (foundCourse.students.includes(req.user._id)) {
       return res.status(400).json({ message: "Already enrolled in this course" });
@@ -234,19 +195,15 @@ export const enrollInCourse = async (req, res) => {
     foundCourse.students.push(req.user._id);
     await foundCourse.save();
 
-    res.status(200).json({ message: "Enrolled in course successfully" });
-
+    res.status(200).json({ success: true, message: "Enrolled in course successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error enrolling in course", error: error.message });
+    res.status(500).json({ success: false, message: "Error enrolling", error: error.message });
   }
 };
 
+// 8. Instructor Stats
 export const getInstructorStats = async (req, res) => {
   try {
-    if (req.user.role !== "instructor") {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
     const instructorId = req.user._id;
     const totalCourses = await Course.countDocuments({ instructor: instructorId });
     const myCourses = await Course.find({ instructor: instructorId }).select("_id students");
@@ -255,22 +212,39 @@ export const getInstructorStats = async (req, res) => {
 
     const studentsSet = new Set();
     myCourses.forEach(c => {
-      if (c.students) {
-        c.students.forEach(sId => studentsSet.add(sId.toString()));
-      }
+      if (c.students) c.students.forEach(sId => studentsSet.add(sId.toString()));
     });
-    const totalStudents = studentsSet.size;
-
+    
     res.status(200).json({
       success: true,
       stats: {
         totalCourses,
         totalLessons,
-        totalStudents,
-        totalEarnings: totalCourses * 150 
+        totalStudents: studentsSet.size,
+        totalEarnings: totalCourses * 150 // Sample logic
       }
     });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching stats", error: error.message });
+    res.status(500).json({ success: false, message: "Error fetching stats", error: error.message });
+  }
+};
+
+// 9. Get all courses created by a specific Instructor (Pending, Approved, Rejected )
+export const getInstructorCourses = async (req, res) => {
+  try {
+    const instructorId = req.user._id;
+
+    const courses = await Course.find({ instructor: instructorId }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      courses,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error retrieving instructor courses",
+      error: error.message,
+    });
   }
 };
