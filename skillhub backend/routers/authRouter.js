@@ -7,7 +7,7 @@ import { registerUser, loginUser,
   changePassword
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import upload from "../middleware/multer.js";
+import upload, { memoryUpload } from "../middleware/multer.js";
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.get("/profile-stats", protect, getProfileStats);
 router.put(
   "/profile-picture",
   protect,
-  upload.single("profilePicture"),
+  memoryUpload.single("profilePicture"),
   updateProfilePicture
 );
 router.get("/profile", protect, getProfile);

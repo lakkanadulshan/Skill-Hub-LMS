@@ -6,7 +6,7 @@ const courseSchema = new mongoose.Schema(
     description: { type: String, required: true },
     instructor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // User model එකට හරියටම link කරා
+      ref: "User", 
       required: true,
     },
     students: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

@@ -1,18 +1,18 @@
 import { createLesson, getLessonByCourse, updateLesson, deleteLesson } from "../controllers/lessonController.js";
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
-import upload from "../middleware/multer.js";
+import { memoryUpload } from "../middleware/multer.js";
 
 const router = express.Router();
 
 // Create a new lesson
-router.post("/create", protect,upload.single("pdfFile"), createLesson);
+router.post("/create", protect, memoryUpload.single("pdfFile"), createLesson);
 
 // Get Lessons by Course
 router.get("/course/:courseId", protect, getLessonByCourse);
 
 // Update lesson
-router.put("/update/:lessonId", protect, upload.single("pdfFile"), updateLesson);
+router.put("/update/:lessonId", protect, memoryUpload.single("pdfFile"), updateLesson);
 
 // Delete lesson
 router.delete("/delete/:lessonId", protect, deleteLesson);
