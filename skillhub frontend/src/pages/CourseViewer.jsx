@@ -143,7 +143,7 @@ export default function CourseViewer() {
       } catch (err) {
         console.error("Error fetching course syllabus:", err);
       } finally {
-        Loading(false);
+        setLoading(false);
       }
     };
 
