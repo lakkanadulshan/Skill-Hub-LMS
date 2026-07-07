@@ -156,6 +156,8 @@ export default function CourseViewer() {
 
   const handleLessonSelect = (lesson) => {
     setActiveLesson(lesson);
+    // 📱 මොබයිල් එකේදී ලෙසන් එකක් ක්ලික් කරපු ගමන් ස්ක්‍රීන් එක වීඩියෝ එක තියෙන තැනට Auto Scroll කිරීම
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleToggleComplete = async (e, lessonId) => {
@@ -202,13 +204,15 @@ export default function CourseViewer() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900 font-sans">
+    // 📱 මොබයිල් එකේදී scroll වෙන්න 'h-screen overflow-hidden' වෙනුවට 'min-h-screen' සහ 'flex-col md:flex-row' දැම්මා මචං
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
       
       {/* ================= SIDEBAR ================= */}
-      <aside className="w-[380px] border-r border-slate-100 bg-white flex flex-col shadow-[10px_0_40px_-15px_rgba(0,0,0,0.03)] z-50">
+      {/* 📱 මොබයිල් එකේදී 'w-full md:w-[380px]', 'h-auto md:h-screen' කරලා ලේඅවුට් එක හැදුවා */}
+      <aside className="w-full md:w-[380px] border-b md:border-b-0 md:border-r border-slate-100 bg-white flex flex-col shadow-[10px_0_40px_-15px_rgba(0,0,0,0.03)] z-50 md:h-screen md:sticky md:top-0">
         
         {/* Sidebar Header */}
-        <div className="p-8 border-b border-slate-50 space-y-6">
+        <div className="p-6 md:p-8 border-b border-slate-50 space-y-4 md:space-y-6">
           <button 
             onClick={() => navigate("/student-dashboard")} 
             className="group flex items-center gap-2 text-slate-400 hover:text-purple-600 font-black text-[11px] uppercase tracking-widest transition-colors"
@@ -217,12 +221,12 @@ export default function CourseViewer() {
           </button>
           
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">Curriculum</h2>
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-none">Curriculum</h2>
             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2">Course Module Navigator</p>
           </div>
 
           {/* Progress Section */}
-          <div className="space-y-2.5 bg-slate-50 p-5 rounded-[2rem] border border-slate-100">
+          <div className="space-y-2.5 bg-slate-50 p-4 md:p-5 rounded-[2rem] border border-slate-100">
             <div className="flex items-center justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest">
               <span>COURSE PROGRESS</span>
               <span className="text-purple-600 font-black">{progress}%</span>
@@ -237,7 +241,8 @@ export default function CourseViewer() {
         </div>
 
         {/* Lessons List View */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
+        {/* 📱 මොබයිල් එකේදී ෆෝන් එක වහන් නැති වෙන්න 'max-h-[300px] md:max-h-none' දැම්මා */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 max-h-[280px] md:max-h-none custom-scrollbar bg-slate-50/50 md:bg-white">
           {lessons.map((lesson, index) => {
             const isActive = activeLesson?._id === lesson._id;
             const isCompleted = completedLessons.includes(lesson._id);
@@ -245,10 +250,10 @@ export default function CourseViewer() {
               <button
                 key={lesson._id}
                 onClick={() => handleLessonSelect(lesson)} 
-                className={`w-full rounded-[1.8rem] p-5 border transition-all duration-300 text-left flex items-start justify-between gap-4 group ${
+                className={`w-full rounded-[1.8rem] p-4 md:p-5 border transition-all duration-300 text-left flex items-start justify-between gap-4 group ${
                   isActive 
                     ? "border-purple-600 bg-purple-50 shadow-lg shadow-purple-100" 
-                    : "border-slate-50 bg-white hover:bg-slate-50"
+                    : "border-slate-100 bg-white hover:bg-slate-50"
                 }`}
               >
                 <div className="flex-1 min-w-0">
@@ -284,77 +289,71 @@ export default function CourseViewer() {
       </aside>
 
       {/* ================= MAIN CONTENT AREA ================= */}
-      <main className="flex-1 overflow-y-auto bg-white">
+      {/* 📱 මොබයිල් එකේදී 'w-full flex-1' කරලා වෙනම scroll වෙන්න හැදුවා මචං */}
+      <main className="w-full flex-1 overflow-y-auto bg-white">
         {activeLesson ? (
-          <div className="max-w-6xl mx-auto px-10 py-12 animate-in fade-in duration-700">
-            
-            {/* 📱 🔍 VISUAL LOG BOX: මොබයිල් එකේ ස්ටේට් එක නිවැරදිව මාරු වෙනවාද කියා බැලීමට */}
-            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl mb-4 text-xs font-mono break-all text-yellow-800">
-              <p><strong>Active ID:</strong> {activeLesson._id}</p>
-              <p><strong>Active Title:</strong> {activeLesson.title}</p>
-              <p><strong>Video URL:</strong> {activeLesson.videoUrl || "No URL Found"}</p>
-            </div>
+          <div className="max-w-6xl mx-auto px-4 py-6 md:px-10 md:py-12 animate-in fade-in duration-700">
             
             {/* Video Container */}
-            <div className="rounded-[2.5rem] overflow-hidden border border-slate-100 bg-black shadow-2xl shadow-slate-200 relative aspect-video">
+            <div className="rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-slate-100 bg-black shadow-2xl shadow-slate-200 relative aspect-video w-full">
               {activeLesson.videoUrl?.includes("youtube.com") || activeLesson.videoUrl?.includes("youtu.be") ? (
                 <iframe 
-                  key={activeLesson._id} // 👈 🎯 ලෙසන් මාරු වෙද්දී ප්ලේයර් එක රිෆ්‍රෙෂ් කිරීමට කී එක එකතු කරා
+                  key={activeLesson._id}
                   title={activeLesson.title} 
                   src={getYouTubeEmbedUrl(activeLesson.videoUrl)} 
-                  className="w-full h-full" 
+                  className="w-full h-full absolute top-0 left-0" 
                   allowFullScreen 
                 />
               ) : (
                 <video 
-                  key={activeLesson._id} // 👈 🎯 වැදගත්ම දේ: සාමාන්‍ය වීඩියෝ වලටත් කී එක එකතු කරා
+                  key={activeLesson._id}
                   src={cleanVideoUrl(activeLesson.videoUrl)} 
                   controls 
                   playsInline 
                   preload="auto"
-                  className="w-full h-full block" // 👈 className එක පිරිසිදු කරා
+                  className="w-full h-full absolute top-0 left-0 block bg-black" 
                 />
               )}
             </div>
 
             {/* Title & Metadata */}
-            <div className="mt-12 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div className="mt-6 md:mt-12 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="px-4 py-1.5 rounded-full bg-purple-50 text-purple-600 text-[10px] font-black uppercase tracking-[0.2em] border border-purple-100">
-                    Live Stream Available
+                <div className="flex items-center gap-3 mb-3 md:mb-4">
+                  <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-600 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] border border-purple-100">
+                    Workspace Connected
                   </span>
                   <span className="text-slate-400 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
                     <MonitorPlay size={14} /> Module Detail
                   </span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                <h1 className="text-2xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
                   {activeLesson.title}
                 </h1>
               </div>
-              <div className="shrink-0 bg-slate-50 px-6 py-4 rounded-[1.8rem] border border-slate-100 flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center text-white shadow-lg">
-                    <Clock size={20} />
+              <div className="shrink-0 bg-slate-50 px-5 py-3 md:px-6 md:py-4 rounded-[1.5rem] md:rounded-[1.8rem] border border-slate-100 flex items-center gap-3 w-fit">
+                 <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-purple-600 flex items-center justify-center text-white shadow-lg">
+                    <Clock size={18} />
                  </div>
                  <div>
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Duration</p>
-                    <p className="text-sm font-black text-slate-900">{activeLesson.duration} Minutes</p>
+                    <p className="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest">Duration</p>
+                    <p className="text-xs md:text-sm font-black text-slate-900">{activeLesson.duration} Minutes</p>
                  </div>
               </div>
             </div>
 
-            <p className="mt-8 text-slate-500 text-lg leading-relaxed font-medium max-w-4xl">
+            <p className="mt-4 md:mt-8 text-slate-500 text-base md:text-lg leading-relaxed font-medium max-w-4xl">
               {activeLesson.description}
             </p>
 
             {/* TABS VIEW */}
-            <div className="mt-16 rounded-[2.5rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
+            <div className="mt-10 md:mt-16 rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
               
               {/* Tab Header Selector */}
-              <div className="border-b border-slate-50 px-10 flex gap-10 bg-slate-50/30">
+              <div className="border-b border-slate-50 px-6 md:px-10 flex gap-6 md:gap-10 bg-slate-50/30 overflow-x-auto">
                 <button
                   onClick={() => setActiveTab("notes")}
-                  className={`py-6 font-black text-[11px] uppercase tracking-[0.2em] transition relative ${
+                  className={`py-4 md:py-6 font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] transition relative shrink-0 ${
                     activeTab === "notes" ? "text-purple-600" : "text-slate-400 hover:text-slate-600"
                   }`}
                 >
@@ -363,7 +362,7 @@ export default function CourseViewer() {
                 </button>
                 <button
                   onClick={() => setActiveTab("resources")}
-                  className={`py-6 font-black text-[11px] uppercase tracking-[0.2em] transition relative ${
+                  className={`py-4 md:py-6 font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] transition relative shrink-0 ${
                     activeTab === "resources" ? "text-indigo-600" : "text-slate-400 hover:text-slate-600"
                   }`}
                 >
@@ -373,9 +372,9 @@ export default function CourseViewer() {
               </div>
 
               {/* Tab Content Rendering Area */}
-              <div className="p-10">
+              <div className="p-6 md:p-10">
                 {activeTab === "notes" ? (
-                  <div className="whitespace-pre-wrap leading-[2.2] text-slate-600 text-lg font-medium">
+                  <div className="whitespace-pre-wrap leading-[2] md:leading-[2.2] text-slate-600 text-base md:text-lg font-medium">
                     {activeLesson.content || "No textual notes loaded for this module node."}
                   </div>
                 ) : (
@@ -386,15 +385,15 @@ export default function CourseViewer() {
                     </div>
                     
                     {(!activeLesson.resources || activeLesson.resources.length === 0) ? (
-                      <div className="py-10 text-center bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100">
+                      <div className="py-10 text-center bg-slate-50 rounded-[1.5rem] md:rounded-[2rem] border-2 border-dashed border-slate-100">
                          <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">No resources linked yet</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {activeLesson.resources.map((res, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-5 rounded-[1.8rem] border border-slate-100 bg-white hover:border-indigo-200 hover:shadow-lg transition group">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-2xl transition group-hover:bg-indigo-50">
+                          <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 md:p-5 rounded-[1.5rem] md:rounded-[1.8rem] border border-slate-100 bg-white hover:border-indigo-200 hover:shadow-lg transition gap-4 group">
+                            <div className="flex items-center gap-4 min-w-0">
+                              <div className="w-11 h-11 md:w-12 md:h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-xl shrink-0 transition group-hover:bg-indigo-50">
                                 {res.type === "link" ? "🔗" : "📄"}
                               </div>
                               <div className="truncate">
@@ -408,10 +407,10 @@ export default function CourseViewer() {
                               href={res.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`px-5 py-2.5 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all active:scale-95 ${
+                              className={`px-4 py-2 md:px-5 md:py-2.5 font-black text-[10px] uppercase tracking-widest rounded-xl text-center transition-all active:scale-95 shrink-0 ${
                                 res.type === "link" 
-                                  ? "bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white shadow-sm shadow-purple-100" 
-                                  : "bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white shadow-sm shadow-emerald-100"
+                                  ? "bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white" 
+                                  : "bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white"
                               }`}
                             >
                               {res.type === "link" ? "Open Node ↗" : "Download Node 📥"}
@@ -426,13 +425,13 @@ export default function CourseViewer() {
             </div>
           </div>
         ) : (
-          <div className="h-full flex items-center justify-center text-center p-10">
+          <div className="min-h-[50vh] md:h-full flex items-center justify-center text-center p-6">
             <div className="animate-in zoom-in duration-1000">
-              <div className="w-24 h-24 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-8">
-                 <PlayCircle size={48} className="text-purple-600" strokeWidth={1.5} />
+              <div className="w-20 h-20 md:w-24 md:h-24 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8">
+                 <PlayCircle size={40} className="text-purple-600" strokeWidth={1.5} />
               </div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tight">Ready to Master this Module?</h2>
-              <p className="text-slate-400 mt-4 text-lg font-medium max-w-sm mx-auto">
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Ready to Master this Module?</h2>
+              <p className="text-slate-400 mt-3 text-base md:text-lg font-medium max-w-sm mx-auto">
                 Select a learning node from the curriculum sidebar to begin your journey.
               </p>
             </div>
