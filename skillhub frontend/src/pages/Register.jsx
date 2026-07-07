@@ -21,17 +21,26 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       return Swal.fire("Error", "Passwords do not match!", "error");
     }
     try {
       const response = await publicAPI.post("/auth/register", formData);
-      setUserId(response.data.userId);
-      setIsModalOpen(true);
+      
+      if (response.status === 201 && response.data?.userId) {
+        setUserId(response.data.userId);
+        setIsModalOpen(true);
+        Swal.fire("Success", "Registration successful. Please verify OTP!", "success");
+      } else {
+        Swal.fire("Error", response.data?.message || "Registration failed", "error");
+      }
+
     } catch (err) {
-      Swal.fire("Error", err.response?.data?.message || "Registration failed", "error");
+      // Axios Error Handling
+      const errorMsg = err.response?.data?.message || err.message || "Registration failed";
+      Swal.fire("Error", errorMsg, "error");
     }
   };
 
