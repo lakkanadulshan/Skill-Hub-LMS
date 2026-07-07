@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3020/api";
+const baseURL = import.meta.env.VITE_API_BASE_URL || "https://skill-hub-lms-backend.onrender.com/api";
 
 export const publicAPI = axios.create({ baseURL });
 
