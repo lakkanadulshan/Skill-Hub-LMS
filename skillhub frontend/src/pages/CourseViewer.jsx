@@ -74,6 +74,11 @@ export default function CourseViewer() {
     return url;
   };
 
+  const cleanVideoUrl = (url) => {
+    if (!url) return "";
+    return url.replace("http://", "https://");
+  };
+
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
@@ -138,7 +143,7 @@ export default function CourseViewer() {
       } catch (err) {
         console.error("Error fetching course syllabus:", err);
       } finally {
-        setLoading(false);
+        Loading(false);
       }
     };
 
@@ -149,8 +154,12 @@ export default function CourseViewer() {
     setActiveTab("notes");
   }, [activeLesson]);
 
+  const handleLessonSelect = (lesson) => {
+    setActiveLesson(lesson);
+  };
+
   const handleToggleComplete = async (e, lessonId) => {
-    e.stopPropagation();
+    e.stopPropagation(); 
     try {
       const isCurrentlyCompleted = completedLessons.includes(lessonId);
       const nextCompletedLessons = isCurrentlyCompleted
@@ -235,7 +244,7 @@ export default function CourseViewer() {
             return (
               <button
                 key={lesson._id}
-                onClick={() => setActiveLesson(lesson)}
+                onClick={() => handleLessonSelect(lesson)} 
                 className={`w-full rounded-[1.8rem] p-5 border transition-all duration-300 text-left flex items-start justify-between gap-4 group ${
                   isActive 
                     ? "border-purple-600 bg-purple-50 shadow-lg shadow-purple-100" 
@@ -289,7 +298,13 @@ export default function CourseViewer() {
                   allowFullScreen 
                 />
               ) : (
-                <video src={activeLesson.videoUrl} controls className="w-full h-full" />
+                <video 
+                  src={cleanVideoUrl(activeLesson.videoUrl)} // 👈 HTTPS වලට clean වෙලා එනවා
+                  controls 
+                  playsInline // 👈 මොබයිල් බ්‍රවුසර්ස් වලට අනිවාර්යයි
+                  preload="metadata"
+                  className="w-full h-full" 
+                />
               )}
             </div>
 
