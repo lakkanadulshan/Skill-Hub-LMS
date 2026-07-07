@@ -288,10 +288,18 @@ export default function CourseViewer() {
         {activeLesson ? (
           <div className="max-w-6xl mx-auto px-10 py-12 animate-in fade-in duration-700">
             
+            {/* 📱 🔍 VISUAL LOG BOX: මොබයිල් එකේ ස්ටේට් එක නිවැරදිව මාරු වෙනවාද කියා බැලීමට */}
+            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl mb-4 text-xs font-mono break-all text-yellow-800">
+              <p><strong>Active ID:</strong> {activeLesson._id}</p>
+              <p><strong>Active Title:</strong> {activeLesson.title}</p>
+              <p><strong>Video URL:</strong> {activeLesson.videoUrl || "No URL Found"}</p>
+            </div>
+            
             {/* Video Container */}
             <div className="rounded-[2.5rem] overflow-hidden border border-slate-100 bg-black shadow-2xl shadow-slate-200 relative aspect-video">
               {activeLesson.videoUrl?.includes("youtube.com") || activeLesson.videoUrl?.includes("youtu.be") ? (
                 <iframe 
+                  key={activeLesson._id} // 👈 🎯 ලෙසන් මාරු වෙද්දී ප්ලේයර් එක රිෆ්‍රෙෂ් කිරීමට කී එක එකතු කරා
                   title={activeLesson.title} 
                   src={getYouTubeEmbedUrl(activeLesson.videoUrl)} 
                   className="w-full h-full" 
@@ -299,11 +307,12 @@ export default function CourseViewer() {
                 />
               ) : (
                 <video 
-                  src={cleanVideoUrl(activeLesson.videoUrl)} // 👈 HTTPS වලට clean වෙලා එනවා
+                  key={activeLesson._id} // 👈 🎯 වැදගත්ම දේ: සාමාන්‍ය වීඩියෝ වලටත් කී එක එකතු කරා
+                  src={cleanVideoUrl(activeLesson.videoUrl)} 
                   controls 
-                  playsInline // 👈 මොබයිල් බ්‍රවුසර්ස් වලට අනිවාර්යයි
-                  preload="metadata"
-                  className="w-full h-full" 
+                  playsInline 
+                  preload="auto"
+                  className="w-full h-full block" // 👈 className එක පිරිසිදු කරා
                 />
               )}
             </div>
