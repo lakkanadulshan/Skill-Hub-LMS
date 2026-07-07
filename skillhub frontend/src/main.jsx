@@ -1,19 +1,3 @@
-// import {GoogleOAuthProvider} from "@react-oauth/google";
-// import ReactDOM from "react-dom/client";
-// import App from "./App";
-// import "./index.css";
-// import { BrowserRouter } from "react-router-dom";
-// import { AuthProvider } from "./context/AuthProvider";
-
-// ReactDOM.createRoot(document.getElementById("root")).render(
-//   <BrowserRouter>
-//     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-//       <AuthProvider >
-//         <App />
-//       </AuthProvider>
-//     </GoogleOAuthProvider>
-//   </BrowserRouter>,
-// );
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import ReactDOM from "react-dom/client";
 import App from "./App";
@@ -21,6 +5,17 @@ import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
 import { Toaster } from "react-hot-toast"; 
+
+// 📱 Eruda Mobile Console එක dynamic ලෙස inject කිරීම
+if (typeof window !== "undefined") {
+  const script = document.createElement("script");
+  script.src = "https://cdn.jsdelivr.net/npm/eruda";
+  document.head.appendChild(script);
+  script.onload = () => {
+    window.eruda.init();
+  };
+}
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
