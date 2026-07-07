@@ -270,6 +270,11 @@ export const resetPassword = async (req, res) => {
 //get profile stats
 export const getProfileStats = async (req, res) => {
   try {
+    // 👈 🎯 ආරක්ෂිත පියවර: req.user එකක් නැතිනම් (තාම login/verify වී නැතිනම්) crash නොවී 401 error එකක් දෙයි.
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Unauthorized dashboard access" });
+    }
+
     const studentId = req.user.id;
     // console.log("Requesting user ID:", req.user?.id);
 
